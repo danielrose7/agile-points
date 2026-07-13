@@ -56,11 +56,15 @@ class FxLayer extends LitElement {
 		.float .who,
 		.hopper .who {
 			display: block;
+			width: max-content;
+			margin: -2px auto 0;
 			font-size: 0.65rem;
 			font-family: var(--sp-font);
+			font-weight: 600;
 			color: var(--sp-toast-text);
-			text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-			margin-top: -4px;
+			background: rgba(0, 0, 0, 0.55);
+			padding: 1px 7px;
+			border-radius: 999px;
 		}
 		@keyframes float-up {
 			0% {
@@ -250,7 +254,15 @@ class FxLayer extends LitElement {
 		}
 		.chart .payoff {
 			position: absolute;
-			font-size: 3rem;
+			font-size: clamp(1.6rem, 4.5vw, 3rem);
+			font-family: var(--sp-font);
+			font-weight: 900;
+			/* dark pill so it reads over white panels and dark felt alike */
+			background: rgba(0, 0, 0, 0.72);
+			color: var(--sp-toast-text);
+			padding: 10px 22px;
+			border-radius: 999px;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 			animation: pop-in 0.5s 1.3s cubic-bezier(0.2, 2, 0.4, 1) both;
 		}
 		.big-text {
@@ -263,6 +275,8 @@ class FxLayer extends LitElement {
 			font-weight: 900;
 			color: var(--sp-fx-gold);
 			-webkit-text-stroke: 2px var(--sp-fx-gold-stroke);
+			/* halo lifts gold text off white panels beneath the overlay */
+			text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6), 0 0 3px rgba(0, 0, 0, 0.45);
 			text-align: center;
 			animation: pop-in 0.5s cubic-bezier(0.2, 2, 0.4, 1) both, fade-late 2.6s forwards;
 		}
