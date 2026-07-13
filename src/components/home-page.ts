@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { baseStyles } from './base-styles';
 import { generateRoomSlug } from '../slug';
 import { navigate } from '../main';
 
@@ -9,7 +10,9 @@ class HomePage extends LitElement {
 
 	joinCode = '';
 
-	static styles = css`
+	static styles = [
+		baseStyles,
+		css`
 		:host {
 			display: grid;
 			place-items: center;
@@ -75,7 +78,8 @@ class HomePage extends LitElement {
 			font-weight: 600;
 			cursor: pointer;
 		}
-	`;
+		`,
+	];
 
 	render() {
 		return html`

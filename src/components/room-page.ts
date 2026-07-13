@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { baseStyles } from './base-styles';
 import type { Role, RoomStateView } from '../../shared/types';
 import { RoomConnection, type ConnectionStatus } from '../connection';
 import { clearRoomSession, getSavedName, getSavedRole, getUserId, saveName, saveRole } from '../identity';
@@ -71,7 +72,9 @@ class RoomPage extends LitElement {
 		if (this.timerHandle) clearInterval(this.timerHandle);
 	}
 
-	static styles = css`
+	static styles = [
+		baseStyles,
+		css`
 		:host {
 			display: block;
 			max-width: 860px;
@@ -336,7 +339,8 @@ class RoomPage extends LitElement {
 			border-radius: 8px;
 			font-size: 0.92rem;
 		}
-	`;
+		`,
+	];
 
 	render() {
 		const s = this.state;

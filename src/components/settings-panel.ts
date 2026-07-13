@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { baseStyles } from './base-styles';
 import type { DeckCard, RoomSettings } from '../../shared/types';
 import { DECK_PRESETS } from '../../shared/types';
 
@@ -18,7 +19,9 @@ class SettingsPanel extends LitElement {
 		}
 	}
 
-	static styles = css`
+	static styles = [
+		baseStyles,
+		css`
 		:host {
 			display: block;
 		}
@@ -104,7 +107,8 @@ class SettingsPanel extends LitElement {
 			gap: 8px;
 			margin-top: 14px;
 		}
-	`;
+		`,
+	];
 
 	render() {
 		const d = this.draft;
