@@ -40,7 +40,8 @@ export type ClientMessage =
 	| { type: 'join'; name: string; role: Role }
 	| { type: 'vote'; value: string | null }
 	| { type: 'reveal' }
-	| { type: 'clear' }
+	/** clearStory=true means "next ticket": also blank the story description */
+	| { type: 'clear'; clearStory?: boolean }
 	| { type: 'story'; text: string }
 	| { type: 'settings'; settings: RoomSettings }
 	| { type: 'leave' };

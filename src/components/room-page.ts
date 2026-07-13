@@ -415,10 +415,15 @@ class RoomPage extends LitElement {
 					@input=${this.onStoryInput}
 				></textarea>
 				<div class="toolbar" style="margin-top:12px">
-					<button class="btn" @click=${() => this.conn?.send({ type: 'clear' })}>Clear votes</button>
-					<button class="btn primary" ?disabled=${s.revealed} @click=${() => this.conn?.send({ type: 'reveal' })}>
-						Show votes
-					</button>
+					${s.revealed
+						? html`
+								<button class="btn primary" @click=${this.nextTicket}>Next ticket →</button>
+								<button class="btn" @click=${this.revote}>Re-vote</button>
+							`
+						: html`
+								<button class="btn primary" @click=${() => this.conn?.send({ type: 'reveal' })}>Show votes</button>
+								<button class="btn" @click=${this.revote}>Re-vote</button>
+							`}
 					<span class="spacer"></span>
 					<span class="timer">${s.revealedAt !== null ? '⏸' : '⏱'} ${this.formatElapsed()}</span>
 				</div>
@@ -556,6 +561,22 @@ class RoomPage extends LitElement {
 		const pad = (n: number) => String(n).padStart(2, '0');
 		return `${pad(h)}:${pad(m)}:${pad(sec)}`;
 	}
+
+	/** Re-vote the same ticket: clears votes and timer, keeps the description. */
+	private revote = () => {
+		this.conn?.send({ type: 'clear' });
+	};
+
+	/** Move on: clears votes, timer, and description, then focuses the story box. */
+	private nextTicket = () => {
+		if (this.storySendHandle) clearTimeout(this.storySendHandle);
+		this.storySendHandle = null;
+		this.storyDraft = '';
+		this.conn?.send({ type: 'clear', clearStory: true });
+		requestAnimationFrame(() => {
+			this.shadowRoot?.querySelector<HTMLTextAreaElement>('textarea.story')?.focus();
+		});
+	};
 
 	private onStoryInput = (e: InputEvent) => {
 		this.storyDraft = (e.target as HTMLTextAreaElement).value;

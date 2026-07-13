@@ -130,6 +130,7 @@ export class Room extends DurableObject<Env> {
 				room.revealed = false;
 				room.revealedAt = null;
 				room.roundStartedAt = Date.now();
+				if (msg.clearStory) room.story = '';
 				break;
 			}
 			case 'story': {
