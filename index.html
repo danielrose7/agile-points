@@ -6,6 +6,36 @@
 		<title>Story Points</title>
 		<meta name="description" content="Realtime pointing poker for agile teams" />
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>" />
+		<!-- Deliberately render-blocking (no defer/module): stamps the theme
+		     before first paint to avoid a Flash of inAccurate coloR Theme.
+		     Rooms use their cached theme; everything else gets the seasonal
+		     theme for today's date. Anchors mirror seasonalTheme() in
+		     shared/types.ts — keep in sync. -->
+		<script>
+			(function () {
+				try {
+					var m = location.pathname.match(/^\/room\/([a-z0-9-]{1,64})$/);
+					var t = m && localStorage.getItem('sp:theme:' + m[1]);
+					if (!t) {
+						var anchors = [
+							['newyear', 32], ['valentines', 45], ['stpatricks', 76],
+							['easter', 95], ['mothersday', 130], ['summer', 172],
+							['july4', 185], ['backtoschool', 237], ['fall', 265],
+							['halloween', 304], ['thanksgiving', 330], ['christmas', 359],
+						];
+						var now = new Date();
+						var doy = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
+						var bd = 999;
+						for (var i = 0; i < anchors.length; i++) {
+							var raw = Math.abs(anchors[i][1] - doy);
+							var d = Math.min(raw, 365 - raw);
+							if (d < bd) { bd = d; t = anchors[i][0]; }
+						}
+					}
+					document.documentElement.dataset.theme = t;
+				} catch (e) {}
+			})();
+		</script>
 		<link rel="stylesheet" href="/src/styles.css" />
 		<script type="module" src="/src/main.ts"></script>
 	</head>

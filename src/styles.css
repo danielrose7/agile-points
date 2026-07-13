@@ -247,6 +247,13 @@
 	}
 }
 
+/* Theme swaps animate as a full-page crossfade via the View Transitions API
+   (no-op in browsers without support or with reduced motion). */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 0.45s;
+}
+
 * {
 	box-sizing: border-box;
 }

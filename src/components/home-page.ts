@@ -2,17 +2,27 @@ import { LitElement, html, css } from 'lit';
 import { baseStyles } from './base-styles';
 import { generateRoomSlug } from '../slug';
 import { navigate } from '../main';
+import { applyTheme, todaysTheme } from '../theme';
+import { getRecentRooms, type RecentRoom } from '../recents';
 
 class HomePage extends LitElement {
 	static properties = {
 		joinCode: { state: true },
 		lostPath: { attribute: false },
 		lostRoomExists: { state: true },
+		recents: { state: true },
 	};
 
 	joinCode = '';
 	lostPath = '';
 	lostRoomExists: boolean | null = null;
+	recents: RecentRoom[] = getRecentRooms();
+
+	connectedCallback(): void {
+		super.connectedCallback();
+		// Home wears the season's colors (the head script painted them already).
+		applyTheme(todaysTheme());
+	}
 
 	/** Turn a lost URL into a plausible room slug: /Team%20Alpha! → team-alpha */
 	private get lostSlug(): string {
@@ -53,6 +63,47 @@ class HomePage extends LitElement {
 			gap: 16px;
 			max-width: 460px;
 			width: 100%;
+		}
+		.panel.recents {
+			text-align: left;
+			padding: 20px 24px;
+		}
+		.recents-title {
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--sp-muted);
+			margin-bottom: 10px;
+		}
+		.recent {
+			display: flex;
+			align-items: baseline;
+			gap: 10px;
+			padding: 10px 12px;
+			border-radius: 10px;
+			text-decoration: none;
+			color: var(--sp-surface-text);
+			background: var(--sp-btn-bg);
+			border: 1px solid var(--sp-divider);
+			margin-bottom: 6px;
+		}
+		.recent:hover {
+			border-color: var(--sp-accent);
+			background: var(--sp-highlight);
+		}
+		.recent-name {
+			font-weight: 700;
+		}
+		.recent-slug {
+			font-family: ui-monospace, monospace;
+			font-size: 0.8rem;
+			color: var(--sp-muted);
+		}
+		.recent-when {
+			margin-left: auto;
+			font-size: 0.8rem;
+			color: var(--sp-muted);
+			white-space: nowrap;
 		}
 		.panel.lost {
 			background: var(--sp-highlight);
@@ -153,8 +204,41 @@ class HomePage extends LitElement {
 					<button type="submit">Join</button>
 				</form>
 				</div>
+				${this.recents.length ? this.renderRecents() : ''}
 			</div>
 		`;
+	}
+
+	private renderRecents() {
+		return html`
+			<div class="panel recents">
+				<div class="recents-title">Jump back in</div>
+				${this.recents.map(
+					(r) => html`
+						<a class="recent" href="/room/${r.id}" @click=${(e: MouseEvent) => this.openRecent(e, r.id)}>
+							<span class="recent-name">${r.name || r.id}</span>
+							${r.name ? html`<span class="recent-slug">${r.id}</span>` : ''}
+							<span class="recent-when">${this.timeAgo(r.lastSeen)}</span>
+						</a>
+					`,
+				)}
+			</div>
+		`;
+	}
+
+	private openRecent(e: MouseEvent, id: string): void {
+		e.preventDefault();
+		navigate(`/room/${id}`);
+	}
+
+	private timeAgo(ts: number): string {
+		const mins = Math.round((Date.now() - ts) / 60_000);
+		if (mins < 1) return 'just now';
+		if (mins < 60) return `${mins}m ago`;
+		const hours = Math.round(mins / 60);
+		if (hours < 24) return `${hours}h ago`;
+		const days = Math.round(hours / 24);
+		return `${days}d ago`;
 	}
 
 	private renderLost() {

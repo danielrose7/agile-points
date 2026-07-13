@@ -7,6 +7,8 @@ import { clearRoomSession, getSavedName, getSavedRole, getUserId, saveName, save
 import { navigate } from '../main';
 import { REACTION_EMOJI, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
+import { applyTheme } from '../theme';
+import { removeRecentRoom, touchRecentRoom } from '../recents';
 import './settings-panel';
 import './fx-layer';
 
@@ -70,7 +72,8 @@ class RoomPage extends LitElement {
 			this.state = state;
 			this.error = '';
 			if (justRevealed) this.celebrateReveal(state);
-			document.documentElement.dataset.theme = state.settings.theme ?? 'classic';
+			applyTheme(state.settings.theme ?? 'classic', this.roomId);
+			if (state.youJoined) touchRecentRoom(this.roomId, state.settings.roomName);
 			const yolo = /\byolo\b/i.test(state.story);
 			if (yolo && !this.storyHadYolo) this.fx?.flames();
 			this.storyHadYolo = yolo;
@@ -125,7 +128,6 @@ class RoomPage extends LitElement {
 
 	disconnectedCallback(): void {
 		super.disconnectedCallback();
-		delete document.documentElement.dataset.theme;
 		this.conn?.close();
 		this.conn = null;
 		if (this.timerHandle) clearInterval(this.timerHandle);
@@ -885,6 +887,7 @@ class RoomPage extends LitElement {
 	private leave = () => {
 		this.conn?.send({ type: 'leave' });
 		clearRoomSession(this.roomId);
+		removeRecentRoom(this.roomId);
 		navigate('/');
 	};
 
