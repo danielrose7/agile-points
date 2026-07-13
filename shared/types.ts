@@ -26,6 +26,8 @@ export interface RoomStateView {
 	settings: RoomSettings;
 	story: string;
 	revealed: boolean;
+	/** when the current round was revealed; the round timer freezes here */
+	revealedAt: number | null;
 	roundStartedAt: number;
 	participants: ParticipantView[];
 	/** the recipient's user id */

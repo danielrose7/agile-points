@@ -20,11 +20,18 @@ html,
 body {
 	margin: 0;
 	min-height: 100vh;
+	min-height: 100dvh;
 }
 
+/* Dark base behind everything so iOS overscroll bounce never flashes white. */
+html {
+	background: #123f2e;
+}
+
+/* No background-attachment: fixed — iOS Safari doesn't support it and stops
+   painting the gradient past the first viewport. */
 body {
 	background: var(--ap-bg);
-	background-attachment: fixed;
 	font-family: var(--ap-font);
 	color: #f2f7f4;
 }

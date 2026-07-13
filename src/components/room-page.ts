@@ -16,6 +16,7 @@ class RoomPage extends LitElement {
 		showSettings: { state: true },
 		elapsed: { state: true },
 		copied: { state: true },
+		storyDraft: { state: true },
 	};
 
 	roomId = '';
@@ -27,9 +28,12 @@ class RoomPage extends LitElement {
 	showSettings = false;
 	elapsed = 0;
 	copied = false;
+	storyDraft = '';
 
 	private conn: RoomConnection | null = null;
 	private timerHandle: ReturnType<typeof setInterval> | null = null;
+	private storyEditing = false;
+	private storySendHandle: ReturnType<typeof setTimeout> | null = null;
 
 	connectedCallback(): void {
 		super.connectedCallback();
@@ -38,6 +42,9 @@ class RoomPage extends LitElement {
 		conn.onState = (state) => {
 			this.state = state;
 			this.error = '';
+			// While you're typing, your draft wins over server echoes; remote
+			// edits land once you leave the field.
+			if (!this.storyEditing) this.storyDraft = state.story;
 		};
 		conn.onStatus = (status) => (this.status = status);
 		conn.onError = (message) => (this.error = message);
@@ -52,7 +59,8 @@ class RoomPage extends LitElement {
 		conn.connect();
 
 		this.timerHandle = setInterval(() => {
-			if (this.state) this.elapsed = Math.max(0, Date.now() - this.state.roundStartedAt);
+			const s = this.state;
+			if (s) this.elapsed = Math.max(0, (s.revealedAt ?? Date.now()) - s.roundStartedAt);
 		}, 1000);
 	}
 
@@ -397,8 +405,10 @@ class RoomPage extends LitElement {
 				<textarea
 					class="story"
 					placeholder="What are we estimating?"
-					.value=${s.story}
-					@input=${(e: InputEvent) => this.conn?.send({ type: 'story', text: (e.target as HTMLTextAreaElement).value })}
+					.value=${this.storyDraft}
+					@focus=${() => (this.storyEditing = true)}
+					@blur=${this.onStoryBlur}
+					@input=${this.onStoryInput}
 				></textarea>
 				<div class="toolbar" style="margin-top:12px">
 					<button class="btn" @click=${() => this.conn?.send({ type: 'clear' })}>Clear votes</button>
@@ -406,7 +416,7 @@ class RoomPage extends LitElement {
 						Show votes
 					</button>
 					<span class="spacer"></span>
-					<span class="timer">⏱ ${this.formatElapsed()}</span>
+					<span class="timer">${s.revealedAt !== null ? '⏸' : '⏱'} ${this.formatElapsed()}</span>
 				</div>
 			</div>
 
@@ -541,6 +551,25 @@ class RoomPage extends LitElement {
 		const sec = total % 60;
 		const pad = (n: number) => String(n).padStart(2, '0');
 		return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+	}
+
+	private onStoryInput = (e: InputEvent) => {
+		this.storyDraft = (e.target as HTMLTextAreaElement).value;
+		if (this.storySendHandle) clearTimeout(this.storySendHandle);
+		this.storySendHandle = setTimeout(() => this.sendStory(), 400);
+	};
+
+	private onStoryBlur = () => {
+		this.storyEditing = false;
+		this.sendStory();
+	};
+
+	private sendStory(): void {
+		if (this.storySendHandle) clearTimeout(this.storySendHandle);
+		this.storySendHandle = null;
+		if (this.storyDraft !== this.state?.story) {
+			this.conn?.send({ type: 'story', text: this.storyDraft });
+		}
 	}
 
 	private join = () => {

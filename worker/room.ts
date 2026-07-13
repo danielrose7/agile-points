@@ -19,6 +19,7 @@ interface PersistedRoom {
 	settings: RoomSettings;
 	story: string;
 	revealed: boolean;
+	revealedAt: number | null;
 	roundStartedAt: number;
 	ownerId: string | null;
 	participants: Record<string, Participant>;
@@ -40,6 +41,7 @@ export class Room extends DurableObject<Env> {
 					settings: defaultSettings(),
 					story: '',
 					revealed: false,
+					revealedAt: null,
 					roundStartedAt: Date.now(),
 					ownerId: null,
 					participants: {},
@@ -119,12 +121,14 @@ export class Room extends DurableObject<Env> {
 			case 'reveal': {
 				if (!room.participants[userId]) return;
 				room.revealed = true;
+				room.revealedAt ??= Date.now();
 				break;
 			}
 			case 'clear': {
 				if (!room.participants[userId]) return;
 				room.votes = {};
 				room.revealed = false;
+				room.revealedAt = null;
 				room.roundStartedAt = Date.now();
 				break;
 			}
@@ -209,6 +213,7 @@ export class Room extends DurableObject<Env> {
 		);
 		if (voters.length > 0 && voters.every(([id]) => room.votes[id] !== undefined)) {
 			room.revealed = true;
+			room.revealedAt ??= Date.now();
 		}
 	}
 
@@ -243,6 +248,7 @@ export class Room extends DurableObject<Env> {
 			settings: room.settings,
 			story: room.story,
 			revealed: room.revealed,
+			revealedAt: room.revealedAt ?? null,
 			roundStartedAt: room.roundStartedAt,
 			participants,
 			you: userId,

@@ -56,14 +56,22 @@ class SettingsPanel extends LitElement {
 			flex-wrap: wrap;
 		}
 		.row {
-			display: flex;
+			display: grid;
+			grid-template-columns: 1fr 1fr 38px 38px 38px;
 			gap: 8px;
 			align-items: center;
 			margin-bottom: 8px;
 		}
 		.row input {
-			flex: 1;
 			min-width: 0;
+		}
+		.row.head {
+			margin-bottom: 4px;
+			font-size: 0.78rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			color: var(--ap-muted);
 		}
 		.row button {
 			border: 1px solid #ccd6d0;
@@ -114,7 +122,7 @@ class SettingsPanel extends LitElement {
 					@input=${(e: InputEvent) => this.patch({ roomName: (e.target as HTMLInputElement).value })}
 				/>
 
-				<label class="field">Point values (label shown on card, value used for stats)</label>
+				<label class="field">Point values</label>
 				<div class="presets">
 					${Object.entries(DECK_PRESETS).map(
 						([key, deck]) => html`
@@ -125,6 +133,10 @@ class SettingsPanel extends LitElement {
 					)}
 				</div>
 				<div style="margin-top:12px">
+					<div class="row head">
+						<span>Label</span>
+						<span>Value</span>
+					</div>
 					${d.deck.map(
 						(card, i) => html`
 							<div class="row">
