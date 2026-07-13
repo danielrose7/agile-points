@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit';
+import { keyed } from 'lit/directives/keyed.js';
 import './components/home-page';
 import './components/room-page';
 
@@ -31,7 +32,9 @@ class AppRoot extends LitElement {
 	render() {
 		const roomMatch = this.path.match(/^\/room\/([a-z0-9-]{1,64})$/);
 		if (roomMatch) {
-			return html`<points-room .roomId=${roomMatch[1]}></points-room>`;
+			// keyed: switching rooms must create a fresh element (new socket,
+			// timers, theme) rather than patching roomId on the old one.
+			return keyed(roomMatch[1], html`<points-room .roomId=${roomMatch[1]}></points-room>`);
 		}
 		// Anything else that isn't the front door is a lost URL — let the home
 		// page own the "404, but you could make this a room" experience.

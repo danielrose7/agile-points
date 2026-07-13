@@ -65,6 +65,159 @@
 	background: #080e24;
 }
 
+/* ── Fun themes ── */
+:root[data-theme='surf'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #2a9d8f 0%, #1a6b61 45%, #0f4a43 100%);
+	--ap-accent: #ffb703;
+	--ap-accent-text: #3a2b00;
+	--ap-card-back: repeating-linear-gradient(45deg, #1a7f74 0 6px, #2a9d8f 6px 12px);
+	--ap-highlight: #e8fbf6;
+	--ap-highlight-strong: #d2f5ec;
+	--ap-confetti: #ffb703, #2a9d8f, #7de3ff, #fff, #ffe9c9;
+	background: #0f4a43;
+}
+:root[data-theme='birthday'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #8b3a9c 0%, #63256f 45%, #43164c 100%);
+	--ap-accent: #ff5c8a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #c2447e 0 6px, #ff5c8a 6px 12px);
+	--ap-highlight: #fff0f5;
+	--ap-highlight-strong: #ffdfe9;
+	background: #43164c;
+}
+:root[data-theme='nightclub'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #2b2340 0%, #171226 45%, #0a0812 100%);
+	--ap-accent: #e930ff;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #7c1c8c 0 6px, #e930ff 6px 12px);
+	--ap-highlight: #fbeaff;
+	--ap-highlight-strong: #f5d4ff;
+	--ap-confetti: #e930ff, #30e9ff, #ffe930, #fff, #7c6cff;
+	background: #0a0812;
+}
+
+/* ── Seasonal themes (palettes from Dan's seasonal pen) ── */
+:root[data-theme='newyear'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #a31d1d 0%, #741010 45%, #4a0808 100%);
+	--ap-accent: #d4a017;
+	--ap-accent-text: #3a2b00;
+	--ap-card-back: repeating-linear-gradient(45deg, #b80000 0 6px, #d4212c 6px 12px);
+	--ap-highlight: #fff8e6;
+	--ap-highlight-strong: #ffefc2;
+	--ap-confetti: #d4212c, #d4a017, #fff, #ffb300;
+	background: #4a0808;
+}
+:root[data-theme='valentines'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #973862 0%, #6e2545 45%, #47152b 100%);
+	--ap-accent: #e8619a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #cc4f84 0 6px, #e8619a 6px 12px);
+	--ap-highlight: #fff0f5;
+	--ap-highlight-strong: #ffe0ec;
+	--ap-confetti: #e8619a, #ff8fb8, #fff, #d4212c;
+	background: #47152b;
+}
+:root[data-theme='stpatricks'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #2e9e57 0%, #1d7440 45%, #114a28 100%);
+	--ap-accent: #d4a017;
+	--ap-accent-text: #3a2b00;
+	--ap-card-back: repeating-linear-gradient(45deg, #166534 0 6px, #2e9e57 6px 12px);
+	--ap-highlight: #eefaf1;
+	--ap-highlight-strong: #d8f3e2;
+	--ap-confetti: #2e9e57, #d4a017, #fff, #7de3a0;
+	background: #114a28;
+}
+:root[data-theme='easter'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #8a6cae 0%, #64488a 45%, #422e5e 100%);
+	--ap-accent: #a86fc9;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #8e57ae 0 6px, #c49ee0 6px 12px);
+	--ap-highlight: #faf0ff;
+	--ap-highlight-strong: #f0dcff;
+	--ap-confetti: #a86fc9, #f9d0f0, #fff176, #b8e8c8, #fff;
+	background: #422e5e;
+}
+:root[data-theme='mothersday'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #b3552a 0%, #863d1c 45%, #572611 100%);
+	--ap-accent: #e86f3a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #cc5d2a 0 6px, #e86f3a 6px 12px);
+	--ap-highlight: #fff7f0;
+	--ap-highlight-strong: #ffe6d4;
+	--ap-confetti: #e86f3a, #ffd1b3, #e8619a, #fff;
+	background: #572611;
+}
+:root[data-theme='summer'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #b8862a 0%, #8a621c 45%, #573d0f 100%);
+	--ap-accent: #e8a020;
+	--ap-accent-text: #3a2b00;
+	--ap-card-back: repeating-linear-gradient(45deg, #c8a03a 0 6px, #e8a020 6px 12px);
+	--ap-highlight: #fffbf0;
+	--ap-highlight-strong: #fdf0cc;
+	--ap-confetti: #e8a020, #ffe9c9, #4fa3ff, #fff176;
+	background: #573d0f;
+}
+:root[data-theme='july4'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #14418a 0%, #0a3064 45%, #051d40 100%);
+	--ap-accent: #cc2936;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(to bottom, #cc2936 0 6px, #f5f5f5 6px 12px);
+	--ap-highlight: #fff5f5;
+	--ap-highlight-strong: #ffe0e0;
+	--ap-confetti: #cc2936, #fff, #0a3064, #4fa3ff;
+	background: #051d40;
+}
+:root[data-theme='backtoschool'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #9c611c 0%, #714512 45%, #452a0a 100%);
+	--ap-accent: #e87c20;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #1c1c24 0 6px, #d4a017 6px 12px);
+	--ap-highlight: #fff8f0;
+	--ap-highlight-strong: #fdead2;
+	--ap-confetti: #e87c20, #d4a017, #fff, #4fa3ff;
+	background: #452a0a;
+}
+:root[data-theme='fall'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #a04d1c 0%, #753812 45%, #47220a 100%);
+	--ap-accent: #c4692a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #8b3a0f 0 6px, #c4692a 6px 12px);
+	--ap-highlight: #fdf5ef;
+	--ap-highlight-strong: #f8e4d2;
+	--ap-confetti: #c4692a, #e8a020, #8b3a0f, #ffe9c9;
+	background: #47220a;
+}
+:root[data-theme='halloween'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #2a1c4a 0%, #1a1030 45%, #0f0a18 100%);
+	--ap-accent: #ff6b1a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #d4660c 0 6px, #7c3aed 6px 12px);
+	--ap-highlight: #fff3e8;
+	--ap-highlight-strong: #ffe2c8;
+	--ap-confetti: #ff6b1a, #7c3aed, #1c1c24, #ffe9c9;
+	background: #0f0a18;
+}
+:root[data-theme='thanksgiving'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #8a4a20 0%, #643414 45%, #3e200c 100%);
+	--ap-accent: #b85c2a;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #9c4a20 0 6px, #d4a017 6px 12px);
+	--ap-highlight: #fdf6ef;
+	--ap-highlight-strong: #f6e6d0;
+	--ap-confetti: #b85c2a, #d4a017, #8b3a0f, #ffe9c9;
+	background: #3e200c;
+}
+:root[data-theme='christmas'] {
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #1e6b3e 0%, #14512d 45%, #0b331c 100%);
+	--ap-accent: #e94560;
+	--ap-accent-text: #ffffff;
+	--ap-card-back: repeating-linear-gradient(45deg, #cc2222 0 6px, #f0f0f0 6px 12px);
+	--ap-highlight: #fff5f5;
+	--ap-highlight-strong: #ffe0e4;
+	--ap-confetti: #e94560, #2e9e57, #fff, #d4a017;
+	background: #0b331c;
+}
+
 /* Twinkling starfield */
 :root[data-theme='space'] body::after {
 	content: '';

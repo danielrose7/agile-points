@@ -7,7 +7,7 @@ import type {
 	RoomStateView,
 	ServerMessage,
 } from '../shared/types';
-import { defaultSettings, REACTION_EMOJI, THEMES } from '../shared/types';
+import { ALL_REACTION_EMOJI, defaultSettings, THEMES } from '../shared/types';
 
 interface Participant {
 	name: string;
@@ -38,7 +38,8 @@ export class Room extends DurableObject<Env> {
 		if (!this.room) {
 			this.room =
 				(await this.ctx.storage.get<PersistedRoom>(ROOM_KEY)) ?? {
-					settings: defaultSettings(),
+					// Fresh room = surprise theme; the host can change it in settings.
+					settings: { ...defaultSettings(), theme: THEMES[Math.floor(Math.random() * THEMES.length)].id },
 					story: '',
 					revealed: false,
 					revealedAt: null,
@@ -171,7 +172,7 @@ export class Room extends DurableObject<Env> {
 			case 'reaction': {
 				const sender = room.participants[userId];
 				if (!sender) return;
-				if (!(REACTION_EMOJI as readonly string[]).includes(msg.emoji)) return;
+				if (!ALL_REACTION_EMOJI.includes(msg.emoji)) return;
 				// Ephemeral: fan out and forget — no storage write, no state broadcast.
 				const payload: ServerMessage = { type: 'reaction', emoji: msg.emoji, from: userId, name: sender.name };
 				for (const socket of this.ctx.getWebSockets()) this.send(socket, payload);

@@ -5,7 +5,7 @@ import type { Role, RoomStateView } from '../../shared/types';
 import { RoomConnection, type ConnectionStatus } from '../connection';
 import { clearRoomSession, getSavedName, getSavedRole, getUserId, saveName, saveRole } from '../identity';
 import { navigate } from '../main';
-import { REACTION_EMOJI } from '../../shared/types';
+import { REACTION_EMOJI, THEME_REACTIONS } from '../../shared/types';
 import { chime, isMuted, setMuted } from '../sound';
 import './settings-panel';
 import './fx-layer';
@@ -645,7 +645,7 @@ class RoomPage extends LitElement {
 			${s.revealed && voters.length ? this.renderStats(s) : nothing}
 
 			<div class="reactions" title="React — 🐇 = we're going down a rabbit hole">
-				${REACTION_EMOJI.map(
+				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.settings.theme] ?? [])].map(
 					(e) => html`<button class="react" @click=${() => this.sendReaction(e)}>${e}</button>`,
 				)}
 			</div>

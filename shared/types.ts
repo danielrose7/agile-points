@@ -8,6 +8,21 @@ export interface DeckCard {
 export const THEMES = [
 	{ id: 'classic', label: '🃏 Card table' },
 	{ id: 'space', label: '🚀 Outer space' },
+	{ id: 'surf', label: '🏄 Surf' },
+	{ id: 'birthday', label: '🎂 Birthday' },
+	{ id: 'nightclub', label: '🪩 Nightclub' },
+	{ id: 'newyear', label: '🧧 Lunar New Year' },
+	{ id: 'valentines', label: '💘 Valentine’s' },
+	{ id: 'stpatricks', label: '🍀 St. Patrick’s' },
+	{ id: 'easter', label: '🌸 Easter' },
+	{ id: 'mothersday', label: '🌷 Mother’s Day' },
+	{ id: 'summer', label: '☀️ Summer' },
+	{ id: 'july4', label: '🎆 4th of July' },
+	{ id: 'backtoschool', label: '📚 Back to School' },
+	{ id: 'fall', label: '🍂 Fall' },
+	{ id: 'halloween', label: '🎃 Halloween' },
+	{ id: 'thanksgiving', label: '🦃 Thanksgiving' },
+	{ id: 'christmas', label: '🎄 Christmas' },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]['id'];
@@ -47,6 +62,32 @@ export interface RoomStateView {
 }
 
 export const REACTION_EMOJI = ['👍', '🔥', '🤔', '😂', '🎉', '👏', '☕', '🐇'] as const;
+
+/** Two theme-flavored tray slots appended to the core reactions. */
+export const THEME_REACTIONS: Record<ThemeId, [string, string]> = {
+	classic: ['🎲', '♠️'],
+	space: ['🛸', '🌟'],
+	surf: ['🌊', '🤙'],
+	birthday: ['🎈', '🎁'],
+	nightclub: ['💃', '🕺'],
+	newyear: ['🧧', '🐉'],
+	valentines: ['💘', '🌹'],
+	stpatricks: ['🍀', '🌈'],
+	easter: ['🐣', '🌸'],
+	mothersday: ['🌷', '💐'],
+	summer: ['🍦', '😎'],
+	july4: ['🎆', '🦅'],
+	backtoschool: ['📚', '✏️'],
+	fall: ['🍂', '🌰'],
+	halloween: ['🎃', '👻'],
+	thanksgiving: ['🦃', '🥧'],
+	christmas: ['🎅', '⛄'],
+};
+
+/** Everything the server accepts, regardless of the room's current theme. */
+export const ALL_REACTION_EMOJI: string[] = [
+	...new Set([...REACTION_EMOJI, ...Object.values(THEME_REACTIONS).flat()]),
+];
 
 export type ClientMessage =
 	| { type: 'join'; name: string; role: Role }
