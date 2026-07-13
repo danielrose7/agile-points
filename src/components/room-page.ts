@@ -6,7 +6,7 @@ import { RoomConnection, type ConnectionStatus } from '../connection';
 import { clearRoomSession, getSavedName, getSavedRole, getUserId, saveName, saveRole } from '../identity';
 import { navigate } from '../main';
 import { REACTION_EMOJI, THEME_REACTIONS } from '../../shared/types';
-import { chime, isMuted, setMuted } from '../sound';
+import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
 import './settings-panel';
 import './fx-layer';
 
@@ -23,6 +23,8 @@ class RoomPage extends LitElement {
 		copied: { state: true },
 		storyDraft: { state: true },
 		muted: { state: true },
+		volume: { state: true },
+		timerWobble: { state: true },
 	};
 
 	roomId = '';
@@ -36,6 +38,8 @@ class RoomPage extends LitElement {
 	copied = false;
 	storyDraft = '';
 	muted = isMuted();
+	volume = getVolume();
+	timerWobble = false;
 
 	private conn: RoomConnection | null = null;
 	private timerHandle: ReturnType<typeof setInterval> | null = null;
@@ -109,6 +113,11 @@ class RoomPage extends LitElement {
 				if (crossed15) {
 					this.fx?.toast('⏳ 15 minutes on this one — split the ticket, park it, or timebox 5 more?');
 				}
+				// Each new rabbit arrives with a size-up wobble.
+				if (stage >= 2) {
+					this.timerWobble = true;
+					setTimeout(() => (this.timerWobble = false), 900);
+				}
 				this.lastStage = stage;
 			}
 		}, 1000);
@@ -163,6 +172,11 @@ class RoomPage extends LitElement {
 			border-radius: 999px;
 			padding: 4px 8px;
 			font-size: 0.95rem;
+			cursor: pointer;
+		}
+		.vol {
+			width: 72px;
+			accent-color: var(--ap-accent);
 			cursor: pointer;
 		}
 		.panel {
@@ -259,6 +273,31 @@ class RoomPage extends LitElement {
 			font-family: ui-monospace, monospace;
 			font-size: 1rem;
 			color: var(--ap-muted);
+			display: inline-block;
+			transition: font-size 0.4s ease;
+		}
+		.timer.wobble {
+			animation: timer-wobble 0.85s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+		}
+		@keyframes timer-wobble {
+			0% {
+				transform: scale(1) rotate(0);
+			}
+			25% {
+				transform: scale(1.45) rotate(-5deg);
+			}
+			45% {
+				transform: scale(1.38) rotate(4deg);
+			}
+			65% {
+				transform: scale(1.3) rotate(-3deg);
+			}
+			82% {
+				transform: scale(1.12) rotate(1.5deg);
+			}
+			100% {
+				transform: scale(1) rotate(0);
+			}
 		}
 		.timer.amber {
 			color: var(--ap-timer-warn);
@@ -489,8 +528,24 @@ class RoomPage extends LitElement {
 						title=${this.muted ? 'Unmute timer sounds (just for you)' : 'Mute timer sounds (just for you)'}
 						@click=${this.toggleMute}
 					>
-						${this.muted ? '🔇' : '🔊'}
+						${this.muted ? '🔇' : this.volume > 0.5 ? '🔊' : '🔉'}
 					</button>
+					${!this.muted
+						? html`<input
+								class="vol"
+								type="range"
+								min="0.05"
+								max="1"
+								step="0.05"
+								title="Chime volume (just for you)"
+								.value=${String(this.volume)}
+								@input=${(e: InputEvent) => {
+									this.volume = Number((e.target as HTMLInputElement).value);
+									setVolume(this.volume);
+								}}
+								@change=${() => chime.amber()}
+							/>`
+						: nothing}
 				</span>
 			</header>
 			${this.error ? html`<div class="error">${this.error}</div>` : nothing}
@@ -569,7 +624,10 @@ class RoomPage extends LitElement {
 								<button class="btn" @click=${this.revote}>Re-vote</button>
 							`}
 					<span class="spacer"></span>
-					<span class="timer ${this.timerMood(s)}">
+					<span
+						class="timer ${this.timerMood(s)} ${this.timerWobble ? 'wobble' : ''}"
+						style="font-size:${1 + this.rabbitCount(s) * 0.16}rem"
+					>
 						${Array.from(
 							{ length: this.rabbitCount(s) },
 							(_, i) => html`<span class="bun" style="animation-delay:${i * 120}ms">🐇</span>`,

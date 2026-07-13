@@ -1,4 +1,8 @@
 const MUTE_KEY = 'ap:muted';
+const VOLUME_KEY = 'ap:volume';
+const DEFAULT_VOLUME = 0.7;
+/** Gain at volume=1. The old fixed gain (0.05) sat near today's 0.3 mark. */
+const MAX_GAIN = 0.18;
 
 export function isMuted(): boolean {
 	return localStorage.getItem(MUTE_KEY) === '1';
@@ -6,6 +10,16 @@ export function isMuted(): boolean {
 
 export function setMuted(muted: boolean): void {
 	localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+}
+
+/** Personal chime volume, 0..1. */
+export function getVolume(): number {
+	const v = Number(localStorage.getItem(VOLUME_KEY));
+	return Number.isFinite(v) && v > 0 ? Math.min(v, 1) : DEFAULT_VOLUME;
+}
+
+export function setVolume(v: number): void {
+	localStorage.setItem(VOLUME_KEY, String(Math.max(0, Math.min(v, 1))));
 }
 
 /**
@@ -30,9 +44,11 @@ class Chime {
 		}
 	}
 
-	private beep(freq: number, at: number, duration = 0.14, volume = 0.05): void {
+	private beep(freq: number, at: number, duration = 0.14): void {
 		const ctx = this.ensure();
 		if (!ctx || ctx.state !== 'running') return;
+		const volume = MAX_GAIN * getVolume();
+		if (volume <= 0) return;
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
 		osc.type = 'sine';
