@@ -1,0 +1,30 @@
+:root {
+	/* Theme hooks — post-MVP themes (surf, space, birthday, nightclub) override these. */
+	--ap-bg: radial-gradient(ellipse at 50% -20%, #2e7d5b 0%, #1b5e43 45%, #123f2e 100%);
+	--ap-surface: #ffffff;
+	--ap-surface-text: #1c2b24;
+	--ap-muted: #5f7268;
+	--ap-accent: #ffb300;
+	--ap-accent-text: #3a2b00;
+	--ap-card: #fdfdfb;
+	--ap-card-back: repeating-linear-gradient(45deg, #b71c1c 0 6px, #d32f2f 6px 12px);
+	--ap-radius: 14px;
+	--ap-font: 'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100vh;
+}
+
+body {
+	background: var(--ap-bg);
+	background-attachment: fixed;
+	font-family: var(--ap-font);
+	color: #f2f7f4;
+}

@@ -1,19 +1,25 @@
 {
-  "name": "pointing-poker",
+  "name": "agile-points",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
-    "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "deploy": "npm run build && wrangler deploy",
+    "dev": "vite dev",
+    "start": "vite dev",
+    "test": "echo 'no tests yet'",
+    "cf-typegen": "wrangler types",
+    "build": "tsc && vite build",
+    "preview": "npm run build && vite preview"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.12.4",
+    "@cloudflare/vite-plugin": "^1.44.0",
     "@types/node": "^26.1.1",
     "typescript": "^5.5.2",
-    "vitest": "~3.2.0",
+    "vite": "^8.1.4",
     "wrangler": "^4.110.0"
-  }
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "type": "module"
 }

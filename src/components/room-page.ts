@@ -1,0 +1,575 @@
+import { LitElement, html, css, nothing } from 'lit';
+import type { Role, RoomStateView } from '../../shared/types';
+import { RoomConnection, type ConnectionStatus } from '../connection';
+import { clearRoomSession, getSavedName, getSavedRole, getUserId, saveName, saveRole } from '../identity';
+import { navigate } from '../main';
+import './settings-panel';
+
+class RoomPage extends LitElement {
+	static properties = {
+		roomId: { type: String },
+		state: { state: true },
+		status: { state: true },
+		error: { state: true },
+		nameDraft: { state: true },
+		roleDraft: { state: true },
+		showSettings: { state: true },
+		elapsed: { state: true },
+		copied: { state: true },
+	};
+
+	roomId = '';
+	state: RoomStateView | null = null;
+	status: ConnectionStatus = 'connecting';
+	error = '';
+	nameDraft = getSavedName();
+	roleDraft: Role = 'voter';
+	showSettings = false;
+	elapsed = 0;
+	copied = false;
+
+	private conn: RoomConnection | null = null;
+	private timerHandle: ReturnType<typeof setInterval> | null = null;
+
+	connectedCallback(): void {
+		super.connectedCallback();
+		const conn = new RoomConnection(this.roomId, getUserId());
+		this.conn = conn;
+		conn.onState = (state) => {
+			this.state = state;
+			this.error = '';
+		};
+		conn.onStatus = (status) => (this.status = status);
+		conn.onError = (message) => (this.error = message);
+
+		// Reclaim a previous seat in this room without showing the join gate.
+		const savedRole = getSavedRole(this.roomId);
+		const savedName = getSavedName();
+		if (savedRole && savedName) {
+			this.roleDraft = savedRole;
+			conn.send({ type: 'join', name: savedName, role: savedRole });
+		}
+		conn.connect();
+
+		this.timerHandle = setInterval(() => {
+			if (this.state) this.elapsed = Math.max(0, Date.now() - this.state.roundStartedAt);
+		}, 1000);
+	}
+
+	disconnectedCallback(): void {
+		super.disconnectedCallback();
+		this.conn?.close();
+		this.conn = null;
+		if (this.timerHandle) clearInterval(this.timerHandle);
+	}
+
+	static styles = css`
+		:host {
+			display: block;
+			max-width: 860px;
+			margin: 0 auto;
+			padding: 20px 16px 60px;
+		}
+		header {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 14px;
+		}
+		header .brand {
+			font-weight: 800;
+			font-size: 1.15rem;
+			color: #eaf6ef;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		.room-code {
+			font-family: ui-monospace, monospace;
+			opacity: 0.85;
+		}
+		.conn {
+			font-size: 0.8rem;
+			opacity: 0.8;
+		}
+		.panel {
+			background: var(--ap-surface);
+			color: var(--ap-surface-text);
+			border-radius: var(--ap-radius);
+			padding: 22px;
+			box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
+			margin-bottom: 18px;
+		}
+		.error {
+			background: #fdecea;
+			color: #b3261e;
+			border-radius: 8px;
+			padding: 10px 14px;
+			margin-bottom: 14px;
+		}
+
+		/* Join gate */
+		.gate {
+			max-width: 420px;
+			margin: 10vh auto 0;
+			text-align: center;
+		}
+		.gate h2 {
+			margin-top: 0;
+		}
+		.gate input {
+			width: 100%;
+			padding: 12px;
+			font-size: 1.05rem;
+			border: 1px solid #ccd6d0;
+			border-radius: 10px;
+			margin-bottom: 14px;
+		}
+		.roles {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 18px;
+		}
+		.roles button {
+			flex: 1;
+			padding: 12px;
+			border-radius: 10px;
+			border: 2px solid #ccd6d0;
+			background: #fff;
+			font-size: 0.95rem;
+			cursor: pointer;
+		}
+		.roles button.active {
+			border-color: var(--ap-accent);
+			background: #fff8e6;
+			font-weight: 700;
+		}
+		.join-btn {
+			width: 100%;
+			padding: 13px;
+			border: none;
+			border-radius: 10px;
+			background: var(--ap-accent);
+			color: var(--ap-accent-text);
+			font-size: 1.05rem;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		/* Toolbar */
+		.toolbar {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			align-items: center;
+		}
+		.toolbar .spacer {
+			flex: 1;
+		}
+		.btn {
+			padding: 10px 16px;
+			border-radius: 10px;
+			border: 1px solid #ccd6d0;
+			background: #f4f7f5;
+			font-weight: 600;
+			cursor: pointer;
+		}
+		.btn.primary {
+			background: var(--ap-accent);
+			border-color: var(--ap-accent);
+			color: var(--ap-accent-text);
+		}
+		.btn.quiet {
+			background: transparent;
+		}
+		.timer {
+			font-family: ui-monospace, monospace;
+			font-size: 1rem;
+			color: var(--ap-muted);
+		}
+
+		/* Story */
+		textarea.story {
+			width: 100%;
+			border: 1px solid #ccd6d0;
+			border-radius: 10px;
+			padding: 10px;
+			font: inherit;
+			resize: vertical;
+			min-height: 52px;
+		}
+		label.field {
+			display: block;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--ap-muted);
+			margin-bottom: 6px;
+		}
+
+		/* Deck */
+		.deck {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+		.card {
+			min-width: 58px;
+			height: 84px;
+			border-radius: 10px;
+			border: 2px solid #d6ded9;
+			background: var(--ap-card);
+			font-size: 1.25rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: transform 0.12s ease, box-shadow 0.12s ease;
+			padding: 0 10px;
+		}
+		.card:hover:not(:disabled) {
+			transform: translateY(-6px);
+			box-shadow: 0 10px 18px rgba(0, 0, 0, 0.18);
+		}
+		.card.selected {
+			border-color: var(--ap-accent);
+			background: #fff4d6;
+			transform: translateY(-6px);
+		}
+		.card:disabled {
+			opacity: 0.5;
+			cursor: default;
+		}
+
+		/* Players */
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		th {
+			text-align: left;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--ap-muted);
+			padding: 6px 8px;
+			border-bottom: 2px solid #e3eae6;
+		}
+		td {
+			padding: 10px 8px;
+			border-bottom: 1px solid #eef2ef;
+			font-size: 1.02rem;
+		}
+		.tag {
+			font-size: 0.72rem;
+			background: #eef2ef;
+			border-radius: 6px;
+			padding: 2px 7px;
+			margin-left: 8px;
+			color: var(--ap-muted);
+			vertical-align: middle;
+		}
+		.vote-chip {
+			display: inline-grid;
+			place-items: center;
+			min-width: 42px;
+			height: 56px;
+			border-radius: 8px;
+			font-weight: 800;
+			font-size: 1.1rem;
+			padding: 0 8px;
+		}
+		.vote-chip.hidden-vote {
+			background: var(--ap-card-back);
+			color: transparent;
+		}
+		.vote-chip.shown {
+			background: #fff4d6;
+			border: 2px solid var(--ap-accent);
+			color: var(--ap-surface-text);
+		}
+		.vote-chip.waiting {
+			background: #f1f4f2;
+			color: #b9c4be;
+			font-weight: 400;
+		}
+
+		/* Results */
+		.stats {
+			display: flex;
+			gap: 26px;
+			flex-wrap: wrap;
+		}
+		.stat .num {
+			font-size: 1.9rem;
+			font-weight: 800;
+		}
+		.stat .lbl {
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--ap-muted);
+		}
+		.consensus {
+			font-size: 1.1rem;
+			font-weight: 700;
+			color: #1b5e43;
+		}
+
+		/* Invite */
+		.invite {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+		.invite code {
+			background: #f1f4f2;
+			padding: 8px 12px;
+			border-radius: 8px;
+			font-size: 0.92rem;
+		}
+	`;
+
+	render() {
+		const s = this.state;
+		return html`
+			<header>
+				<a class="brand" @click=${() => navigate('/')}>🃏 Agile Points</a>
+				<span class="room-code">${this.roomId}</span>
+				<span class="conn">${this.statusLabel()}</span>
+			</header>
+			${this.error ? html`<div class="error">${this.error}</div>` : nothing}
+			${!s || !s.youJoined ? this.renderGate() : this.renderTable(s)}
+		`;
+	}
+
+	private statusLabel() {
+		switch (this.status) {
+			case 'open':
+				return '● live';
+			case 'reconnecting':
+				return '◌ reconnecting…';
+			case 'connecting':
+				return '◌ connecting…';
+			default:
+				return '';
+		}
+	}
+
+	private renderGate() {
+		return html`
+			<div class="panel gate">
+				<h2>Take a seat</h2>
+				<input
+					placeholder="Your name"
+					.value=${this.nameDraft}
+					@input=${(e: InputEvent) => (this.nameDraft = (e.target as HTMLInputElement).value)}
+					@keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.join()}
+				/>
+				<div class="roles">
+					<button
+						class=${this.roleDraft === 'voter' ? 'active' : ''}
+						@click=${() => (this.roleDraft = 'voter')}
+					>
+						🎴 Voter
+					</button>
+					<button
+						class=${this.roleDraft === 'observer' ? 'active' : ''}
+						@click=${() => (this.roleDraft = 'observer')}
+					>
+						👀 Observer
+					</button>
+				</div>
+				<button class="join-btn" @click=${this.join}>Join room</button>
+			</div>
+		`;
+	}
+
+	private renderTable(s: RoomStateView) {
+		const me = s.participants.find((p) => p.id === s.you);
+		const isOwner = me?.isOwner ?? false;
+		const voters = s.participants.filter((p) => p.role === 'voter');
+		return html`
+			${s.settings.roomName ? html`<div class="panel"><strong>${s.settings.roomName}</strong></div>` : nothing}
+
+			<div class="panel">
+				<label class="field">Story description</label>
+				<textarea
+					class="story"
+					placeholder="What are we estimating?"
+					.value=${s.story}
+					@input=${(e: InputEvent) => this.conn?.send({ type: 'story', text: (e.target as HTMLTextAreaElement).value })}
+				></textarea>
+				<div class="toolbar" style="margin-top:12px">
+					<button class="btn" @click=${() => this.conn?.send({ type: 'clear' })}>Clear votes</button>
+					<button class="btn primary" ?disabled=${s.revealed} @click=${() => this.conn?.send({ type: 'reveal' })}>
+						Show votes
+					</button>
+					<span class="spacer"></span>
+					<span class="timer">⏱ ${this.formatElapsed()}</span>
+				</div>
+			</div>
+
+			${me?.role === 'voter'
+				? html`
+						<div class="panel">
+							<label class="field">Your vote</label>
+							<div class="deck">
+								${s.settings.deck.map((c) => {
+									const selected = me.vote === c.value;
+									return html`
+										<button
+											class="card ${selected ? 'selected' : ''}"
+											?disabled=${s.revealed}
+											@click=${() => this.conn?.send({ type: 'vote', value: selected ? null : c.value })}
+										>
+											${c.label}
+										</button>
+									`;
+								})}
+							</div>
+						</div>
+					`
+				: nothing}
+
+			<div class="panel">
+				<label class="field">Players</label>
+				<table>
+					<thead>
+						<tr>
+							<th>Player</th>
+							<th>Points</th>
+						</tr>
+					</thead>
+					<tbody>
+						${s.participants.map(
+							(p) => html`
+								<tr>
+									<td>
+										${p.name}
+										${p.isOwner ? html`<span class="tag">host</span>` : nothing}
+										${p.role === 'observer' ? html`<span class="tag">observer</span>` : nothing}
+										${p.id === s.you ? html`<span class="tag">you</span>` : nothing}
+									</td>
+									<td>
+										${p.role === 'observer'
+											? html`—`
+											: p.vote !== null
+												? html`<span class="vote-chip shown">${this.labelFor(s, p.vote)}</span>`
+												: p.hasVoted
+													? html`<span class="vote-chip hidden-vote">?</span>`
+													: html`<span class="vote-chip waiting">…</span>`}
+									</td>
+								</tr>
+							`,
+						)}
+					</tbody>
+				</table>
+			</div>
+
+			${s.revealed && voters.length ? this.renderStats(s) : nothing}
+
+			<div class="panel">
+				<label class="field">Invite your team</label>
+				<div class="invite">
+					<code>${location.href}</code>
+					<button class="btn" @click=${this.copyLink}>${this.copied ? 'Copied ✓' : 'Copy link'}</button>
+				</div>
+			</div>
+
+			<div class="toolbar">
+				${isOwner
+					? html`<button class="btn" @click=${() => (this.showSettings = !this.showSettings)}>
+							⚙️ Room settings
+						</button>`
+					: nothing}
+				<button class="btn" @click=${this.switchRole}>
+					${me?.role === 'voter' ? 'Switch to observer' : 'Switch to voter'}
+				</button>
+				<span class="spacer"></span>
+				<button class="btn quiet" style="color:#ffd9d2" @click=${this.leave}>Leave room</button>
+			</div>
+
+			${this.showSettings && isOwner
+				? html`<points-settings
+						.settings=${s.settings}
+						@save=${(e: CustomEvent) => {
+							this.conn?.send({ type: 'settings', settings: e.detail });
+							this.showSettings = false;
+						}}
+						@close=${() => (this.showSettings = false)}
+					></points-settings>`
+				: nothing}
+		`;
+	}
+
+	private renderStats(s: RoomStateView) {
+		const votes = s.participants
+			.filter((p) => p.role === 'voter' && p.vote !== null)
+			.map((p) => p.vote as string);
+		const numeric = votes.map(Number).filter((n) => !Number.isNaN(n));
+		const avg = numeric.length ? numeric.reduce((a, b) => a + b, 0) / numeric.length : null;
+		const consensus = votes.length > 1 && votes.every((v) => v === votes[0]);
+		return html`
+			<div class="panel">
+				<label class="field">Results</label>
+				<div class="stats">
+					<div class="stat">
+						<div class="num">${votes.length}</div>
+						<div class="lbl">votes</div>
+					</div>
+					${avg !== null
+						? html`<div class="stat">
+								<div class="num">${Math.round(avg * 100) / 100}</div>
+								<div class="lbl">average</div>
+							</div>`
+						: nothing}
+					${consensus ? html`<div class="consensus">🎉 Consensus!</div>` : nothing}
+				</div>
+			</div>
+		`;
+	}
+
+	private labelFor(s: RoomStateView, value: string): string {
+		return s.settings.deck.find((c) => c.value === value)?.label ?? value;
+	}
+
+	private formatElapsed(): string {
+		const total = Math.floor(this.elapsed / 1000);
+		const h = Math.floor(total / 3600);
+		const m = Math.floor((total % 3600) / 60);
+		const sec = total % 60;
+		const pad = (n: number) => String(n).padStart(2, '0');
+		return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+	}
+
+	private join = () => {
+		const name = this.nameDraft.trim();
+		if (!name) return;
+		saveName(name);
+		saveRole(this.roomId, this.roleDraft);
+		this.conn?.send({ type: 'join', name, role: this.roleDraft });
+	};
+
+	private switchRole = () => {
+		const me = this.state?.participants.find((p) => p.id === this.state?.you);
+		if (!me) return;
+		const role: Role = me.role === 'voter' ? 'observer' : 'voter';
+		saveRole(this.roomId, role);
+		this.conn?.send({ type: 'join', name: me.name, role });
+	};
+
+	private leave = () => {
+		this.conn?.send({ type: 'leave' });
+		clearRoomSession(this.roomId);
+		navigate('/');
+	};
+
+	private copyLink = async () => {
+		await navigator.clipboard.writeText(location.href);
+		this.copied = true;
+		setTimeout(() => (this.copied = false), 1500);
+	};
+}
+
+customElements.define('points-room', RoomPage);
