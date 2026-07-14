@@ -51,6 +51,8 @@ export interface RoomSettings {
 	countdown: boolean;
 	/** Countdown length in seconds (5–600). */
 	countdownSeconds: number;
+	/** Result extras on reveal: average, agreement %, distribution chart. */
+	voteStats: boolean;
 }
 
 /** One finished round ("Next ticket →" after a reveal). Aggregate counts
@@ -238,5 +240,6 @@ export function defaultSettings(): RoomSettings {
 		ticketQueue: true,
 		countdown: true,
 		countdownSeconds: 60,
+		voteStats: true,
 	};
 }

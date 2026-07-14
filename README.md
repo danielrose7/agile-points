@@ -162,7 +162,12 @@ for this app's ethos (no accounts, zero deps, free tier, joy):
    the votes clustered.
 5. **Anonymous voting mode** — room setting; reveal shows counts only, never
    who voted what. Server-side masking already exists.
-6. **Async estimation UX** — votes already persist between connections;
+6. **Fresh round clock on return** — today the round timer keeps counting
+   from when a round started even if everyone left the room days ago, so
+   returning teams see a monster elapsed time (and instant rabbits). Add a
+   default-on setting that restarts the clock at 0 when the first person
+   returns to an empty, unrevealed room.
+7. **Async estimation UX** — votes already persist between connections;
    needs "3 of 5 have voted — reveal when ready" affordances.
 
 Deliberately skipped: Jira/GitHub/Linear write-back, video-call embeds, AI

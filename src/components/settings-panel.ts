@@ -348,6 +348,15 @@ class SettingsPanel extends LitElement {
 			<label class="check">
 				<input
 					type="checkbox"
+					.checked=${d.voteStats ?? true}
+					@change=${(e: Event) => this.patch({ voteStats: (e.target as HTMLInputElement).checked })}
+				/>
+				Vote statistics on reveal (average, agreement %, distribution chart)
+			</label>
+
+			<label class="check">
+				<input
+					type="checkbox"
 					.checked=${d.keepHistory ?? true}
 					@change=${(e: Event) => this.patch({ keepHistory: (e.target as HTMLInputElement).checked })}
 				/>

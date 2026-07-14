@@ -346,6 +346,7 @@ export class Room extends DurableObject<Env> {
 					ticketQueue: s?.ticketQueue !== false,
 					countdown: s?.countdown !== false,
 					countdownSeconds: Math.min(600, Math.max(5, Math.round(Number(s?.countdownSeconds)) || 60)),
+					voteStats: s?.voteStats !== false,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {

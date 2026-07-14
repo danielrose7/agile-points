@@ -1000,6 +1000,11 @@ class RoomPage extends LitElement {
 		const numeric = votes.map(Number).filter((n) => !Number.isNaN(n));
 		const avg = numeric.length ? numeric.reduce((a, b) => a + b, 0) / numeric.length : null;
 		const consensus = votes.length > 1 && votes.every((v) => v === votes[0]);
+		const extras = s.settings.voteStats !== false;
+		// Agreement = share of voters on the most common value.
+		const counts = new Map<string, number>();
+		for (const v of votes) counts.set(v, (counts.get(v) ?? 0) + 1);
+		const agreement = votes.length > 1 ? Math.round((Math.max(...counts.values()) / votes.length) * 100) : null;
 		return html`
 			<div class="panel">
 				<label class="field">Results</label>
@@ -1008,15 +1013,21 @@ class RoomPage extends LitElement {
 						<div class="num">${votes.length}</div>
 						<div class="lbl">votes</div>
 					</div>
-					${avg !== null
+					${extras && avg !== null
 						? html`<div class="stat">
 								<div class="num">${Math.round(avg * 100) / 100}</div>
 								<div class="lbl">average</div>
 							</div>`
 						: nothing}
+					${extras && agreement !== null
+						? html`<div class="stat">
+								<div class="num">${agreement}%</div>
+								<div class="lbl">agreement</div>
+							</div>`
+						: nothing}
 					${consensus ? html`<div class="consensus">🎉 Consensus!</div>` : nothing}
 				</div>
-				${this.renderDistribution(s, votes)}
+				${extras ? this.renderDistribution(s, votes) : nothing}
 			</div>
 		`;
 	}
