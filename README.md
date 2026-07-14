@@ -116,4 +116,21 @@ cost nothing forever.
 
 ## Roadmap
 
-- (empty — suggest something!)
+Candidates from a July 2026 survey of what competing tools (Kollabe,
+PlanningPokerOnline, Agile Poker, Async Poker, Parabol) offer, ranked by fit
+for this app's ethos (no accounts, zero deps, free tier, joy):
+
+1. **Ticket queue + results export** — line up multiple stories before a
+   session (paste a list), step through them, then copy the session's history
+   as markdown/CSV for Jira/Slack. Round history already records the data.
+2. **Voting countdown** — host starts an N-second countdown that auto-reveals
+   at zero. Pairs with the existing timer, chimes, and rabbit escalation.
+3. **Agreement % on reveal** — one derived stat next to average: how tightly
+   the votes clustered.
+4. **Anonymous voting mode** — room setting; reveal shows counts only, never
+   who voted what. Server-side masking already exists.
+5. **Async estimation UX** — votes already persist between connections;
+   needs "3 of 5 have voted — reveal when ready" affordances.
+
+Deliberately skipped: Jira/GitHub/Linear write-back, video-call embeds, AI
+insights — all account/API-heavy, against the no-accounts zero-dep grain.
