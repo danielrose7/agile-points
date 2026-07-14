@@ -196,6 +196,7 @@ class SettingsPanel extends LitElement {
 					)}
 				</div>
 
+				<label class="field">Features</label>
 				<label class="check">
 					<input
 						type="checkbox"
@@ -212,6 +213,15 @@ class SettingsPanel extends LitElement {
 						@change=${(e: Event) => this.patch({ timerSounds: (e.target as HTMLInputElement).checked })}
 					/>
 					Timer chimes at 5 &amp; 10 minutes (room-wide; anyone can mute for themselves)
+				</label>
+
+				<label class="check">
+					<input
+						type="checkbox"
+						.checked=${d.ticketQueue ?? true}
+						@change=${(e: Event) => this.patch({ ticketQueue: (e.target as HTMLInputElement).checked })}
+					/>
+					Ticket queue (“Up next” panel and API imports)
 				</label>
 
 				<label class="check">

@@ -215,6 +215,9 @@ export class Room extends DurableObject<Env> {
 			return Response.json({ error: 'expected JSON {"items": [...]} or one story per line' }, { status: 400 });
 		}
 		const room = await this.load();
+		if (room.settings.ticketQueue === false) {
+			return Response.json({ error: 'the ticket queue is disabled in this room’s settings' }, { status: 403 });
+		}
 		room.queue = mode === 'replace' ? items : sanitizeQueue([...(room.queue ?? []), ...items]);
 		await this.save();
 		this.broadcast(room); // connected clients see the imported queue live
@@ -278,8 +281,11 @@ export class Room extends DurableObject<Env> {
 				room.revealed = false;
 				room.revealedAt = null;
 				room.roundStartedAt = Date.now();
-				// "Next ticket" pulls the next queued story; blank if none.
-				if (msg.clearStory) room.story = room.queue?.shift() ?? '';
+				// "Next ticket" pulls the next queued story; blank if none
+				// (or if the queue feature is switched off).
+				if (msg.clearStory) {
+					room.story = (room.settings.ticketQueue !== false ? room.queue?.shift() : undefined) ?? '';
+				}
 				break;
 			}
 			case 'story': {
@@ -289,6 +295,7 @@ export class Room extends DurableObject<Env> {
 			}
 			case 'queue': {
 				if (!room.participants[userId]) return;
+				if (room.settings.ticketQueue === false) return;
 				room.queue = sanitizeQueue(msg.items);
 				break;
 			}
@@ -311,6 +318,7 @@ export class Room extends DurableObject<Env> {
 					// default on; only an explicit false turns it off (old clients omit it)
 					timerSounds: s?.timerSounds !== false,
 					keepHistory: s?.keepHistory !== false,
+					ticketQueue: s?.ticketQueue !== false,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {
@@ -473,7 +481,7 @@ export class Room extends DurableObject<Env> {
 			you: userId,
 			youJoined: room.participants[userId] !== undefined && connected.has(userId),
 			history: room.settings.keepHistory === false ? [] : (room.history ?? []),
-			queue: room.queue ?? [],
+			queue: room.settings.ticketQueue === false ? [] : (room.queue ?? []),
 			theme: resolveTheme(room.settings.theme),
 		};
 	}

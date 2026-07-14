@@ -821,7 +821,7 @@ class RoomPage extends LitElement {
 				</div>
 			</div>
 
-			${this.renderQueue(s)}
+			${s.settings.ticketQueue !== false ? this.renderQueue(s) : nothing}
 
 			${me?.role === 'voter'
 				? html`

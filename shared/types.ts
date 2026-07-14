@@ -42,6 +42,9 @@ export interface RoomSettings {
 	/** Record finished rounds (story, votes, duration). Off = stop recording
 	 *  and hide the panel; existing entries survive until cleared. */
 	keepHistory: boolean;
+	/** "Up next" ticket queue. Off = hide the panel and reject API imports;
+	 *  queued items survive until re-enabled. */
+	ticketQueue: boolean;
 }
 
 /** One finished round ("Next ticket →" after a reveal). Aggregate counts
@@ -222,5 +225,6 @@ export function defaultSettings(): RoomSettings {
 		theme: 'seasonal',
 		timerSounds: true,
 		keepHistory: true,
+		ticketQueue: true,
 	};
 }

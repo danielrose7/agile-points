@@ -151,13 +151,18 @@ for this app's ethos (no accounts, zero deps, free tier, joy):
 
 1. ~~**Ticket queue + results export**~~ — shipped July 2026 (see "Ticket
    queue & the import/export API" above).
-2. **Voting countdown** — host starts an N-second countdown that auto-reveals
+2. **Deck layout & grouping** — hosts already fake groups with label prefixes
+   (e.g. a triage room with `TD Creep / TD Urgent`, `US Urgent / US High /
+   US Medium`, `OD Medium / OD Low`); let room settings express that for real:
+   named groups or row breaks in the deck editor, rendered as separated card
+   clusters in the voting hand.
+3. **Voting countdown** — host starts an N-second countdown that auto-reveals
    at zero. Pairs with the existing timer, chimes, and rabbit escalation.
-3. **Agreement % on reveal** — one derived stat next to average: how tightly
+4. **Agreement % on reveal** — one derived stat next to average: how tightly
    the votes clustered.
-4. **Anonymous voting mode** — room setting; reveal shows counts only, never
+5. **Anonymous voting mode** — room setting; reveal shows counts only, never
    who voted what. Server-side masking already exists.
-5. **Async estimation UX** — votes already persist between connections;
+6. **Async estimation UX** — votes already persist between connections;
    needs "3 of 5 have voted — reveal when ready" affordances.
 
 Deliberately skipped: Jira/GitHub/Linear write-back, video-call embeds, AI
