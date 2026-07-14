@@ -12,6 +12,7 @@ class SettingsPanel extends LitElement {
 		historyCount: { attribute: false },
 		draft: { state: true },
 		tab: { state: true },
+		showGroups: { state: true },
 	};
 
 	settings: RoomSettings | null = null;
@@ -19,10 +20,14 @@ class SettingsPanel extends LitElement {
 	historyCount = 0;
 	draft: RoomSettings | null = null;
 	tab: Tab = 'general';
+	/** Group column is progressive disclosure: hidden until asked for,
+	 *  except when the deck already uses groups. */
+	showGroups = false;
 
 	willUpdate(changed: Map<string, unknown>): void {
 		if (changed.has('settings') && this.settings && !this.draft) {
 			this.draft = structuredClone(this.settings);
+			this.showGroups = this.draft.deck.some((c) => c.group);
 		}
 	}
 
@@ -91,10 +96,23 @@ class SettingsPanel extends LitElement {
 		}
 		.row {
 			display: grid;
-			grid-template-columns: 1fr 1fr 1fr 34px 34px 34px;
+			grid-template-columns: 1fr 1fr 34px 34px 34px;
 			gap: 6px;
 			align-items: center;
 			margin-bottom: 8px;
+		}
+		.row.grouped {
+			grid-template-columns: 1fr 1fr 1fr 34px 34px 34px;
+		}
+		.btn.ghost {
+			background: none;
+			border-style: dashed;
+			color: var(--sp-muted);
+			margin-left: 8px;
+		}
+		.btn.ghost:hover {
+			color: var(--sp-surface-text);
+			border-color: var(--sp-accent);
 		}
 		.row input {
 			min-width: 0;
@@ -228,14 +246,14 @@ class SettingsPanel extends LitElement {
 				)}
 			</div>
 			<div style="margin-top:12px">
-				<div class="row head">
+				<div class="row head ${this.showGroups ? 'grouped' : ''}">
 					<span>Label</span>
 					<span>Value</span>
-					<span>Group</span>
+					${this.showGroups ? html`<span>Group</span>` : ''}
 				</div>
 				${d.deck.map(
 					(card, i) => html`
-						<div class="row">
+						<div class="row ${this.showGroups ? 'grouped' : ''}">
 							<input
 								type="text"
 								placeholder="Label"
@@ -248,12 +266,15 @@ class SettingsPanel extends LitElement {
 								.value=${card.value}
 								@input=${(e: InputEvent) => this.patchCard(i, { value: (e.target as HTMLInputElement).value })}
 							/>
-							<input
-								type="text"
-								placeholder="—"
-								.value=${card.group ?? ''}
-								@input=${(e: InputEvent) => this.patchCard(i, { group: (e.target as HTMLInputElement).value })}
-							/>
+							${this.showGroups
+								? html`<input
+										type="text"
+										placeholder="—"
+										title="Cards sharing a group render as a labeled cluster in the voting hand"
+										.value=${card.group ?? ''}
+										@input=${(e: InputEvent) => this.patchCard(i, { group: (e.target as HTMLInputElement).value })}
+									/>`
+								: ''}
 							<button title="Move up" ?disabled=${i === 0} @click=${() => this.moveCard(i, -1)}>⬆︎</button>
 							<button title="Move down" ?disabled=${i === d.deck.length - 1} @click=${() => this.moveCard(i, 1)}>⬇︎</button>
 							<button title="Remove" @click=${() => this.removeCard(i)}>✕</button>
@@ -261,10 +282,22 @@ class SettingsPanel extends LitElement {
 					`,
 				)}
 				<button class="btn" @click=${this.addCard}>+ Add value</button>
-				<p class="hint">
-					Cards sharing a Group render as a labeled cluster in the voting hand (e.g. severity tiers in a
-					triage room). Leave blank for one flat hand.
-				</p>
+				${!this.showGroups
+					? html`
+							<button
+								class="btn ghost"
+								title="Cluster cards under labels in the voting hand — e.g. severity tiers in a triage room"
+								@click=${() => (this.showGroups = true)}
+							>
+								+ Groups
+							</button>
+						`
+					: html`
+							<p class="hint">
+								Cards sharing a Group render as a labeled cluster in the voting hand (e.g. severity tiers
+								in a triage room). Leave blank for one flat hand.
+							</p>
+						`}
 			</div>
 		`;
 	}
