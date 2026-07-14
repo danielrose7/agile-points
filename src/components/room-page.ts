@@ -23,7 +23,9 @@ class RoomPage extends LitElement {
 		showSettings: { state: true },
 		elapsed: { state: true },
 		copied: { state: true },
+		copiedExport: { state: true },
 		storyDraft: { state: true },
+		queueDraft: { state: true },
 		muted: { state: true },
 		volume: { state: true },
 		timerWobble: { state: true },
@@ -38,7 +40,9 @@ class RoomPage extends LitElement {
 	showSettings = false;
 	elapsed = 0;
 	copied = false;
+	copiedExport: 'md' | 'csv' | null = null;
 	storyDraft = '';
+	queueDraft = '';
 	muted = isMuted();
 	volume = getVolume();
 	timerWobble = false;
@@ -643,6 +647,53 @@ class RoomPage extends LitElement {
 			margin-left: auto;
 			white-space: nowrap;
 		}
+
+		/* Ticket queue */
+		.queue-row {
+			grid-template-columns: 24px 1fr 30px;
+			display: grid;
+			align-items: center;
+			gap: 8px;
+		}
+		.queue-pos {
+			color: var(--sp-muted);
+			font-size: 0.8rem;
+			font-weight: 700;
+			text-align: right;
+		}
+		.queue-text {
+			overflow-wrap: anywhere;
+		}
+		.queue-remove {
+			border: none;
+			background: none;
+			color: var(--sp-muted);
+			cursor: pointer;
+			border-radius: 6px;
+			padding: 4px 8px;
+		}
+		.queue-remove:hover {
+			background: var(--sp-error-bg);
+			color: var(--sp-error-text);
+		}
+		.queue-add {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid var(--sp-border);
+			border-radius: 10px;
+			font: inherit;
+			resize: vertical;
+		}
+		.btn.small {
+			padding: 6px 12px;
+			font-size: 0.85rem;
+		}
+		a.btn {
+			text-decoration: none;
+			color: inherit;
+			display: inline-flex;
+			align-items: center;
+		}
 		`,
 	];
 
@@ -747,7 +798,9 @@ class RoomPage extends LitElement {
 				<div class="toolbar" style="margin-top:12px">
 					${s.revealed
 						? html`
-								<button class="btn primary" @click=${this.nextTicket}>Next ticket →</button>
+								<button class="btn primary" title=${s.queue?.[0] ?? ''} @click=${this.nextTicket}>
+									Next ticket →
+								</button>
 								<button class="btn" @click=${this.revote}>Re-vote</button>
 							`
 						: html`
@@ -767,6 +820,8 @@ class RoomPage extends LitElement {
 					</span>
 				</div>
 			</div>
+
+			${this.renderQueue(s)}
 
 			${me?.role === 'voter'
 				? html`
@@ -940,11 +995,72 @@ class RoomPage extends LitElement {
 		`;
 	}
 
+	private renderQueue(s: RoomStateView) {
+		const queue = s.queue ?? [];
+		return html`
+			<div class="panel">
+				<details class="hist-details">
+					<summary>🗂 Up next (${queue.length})</summary>
+					<div class="hist">
+						${queue.map(
+							(item, i) => html`
+								<div class="hist-row queue-row">
+									<span class="queue-pos">${i + 1}</span>
+									<span class="queue-text">${item}</span>
+									<button
+										class="queue-remove"
+										title="Remove from queue"
+										@click=${() => this.setQueue(queue.filter((_, j) => j !== i))}
+									>
+										✕
+									</button>
+								</div>
+							`,
+						)}
+						<textarea
+							class="queue-add"
+							rows="3"
+							placeholder="Add tickets — one per line"
+							.value=${this.queueDraft}
+							@input=${(e: InputEvent) => (this.queueDraft = (e.target as HTMLTextAreaElement).value)}
+						></textarea>
+						<div class="toolbar">
+							<button class="btn" ?disabled=${!this.queueDraft.trim()} @click=${this.addToQueue}>
+								Add to queue
+							</button>
+						</div>
+					</div>
+				</details>
+			</div>
+		`;
+	}
+
+	private setQueue(items: string[]): void {
+		this.conn?.send({ type: 'queue', items });
+	}
+
+	private addToQueue = (): void => {
+		const items = this.queueDraft.split('\n').map((l) => l.trim()).filter(Boolean);
+		if (items.length === 0) return;
+		this.setQueue([...(this.state?.queue ?? []), ...items]);
+		this.queueDraft = '';
+	};
+
 	private renderHistory(s: RoomStateView) {
 		return html`
 			<div class="panel">
 				<details class="hist-details">
 					<summary>📜 Round history (${s.history.length})</summary>
+					<div class="toolbar" style="margin-top:10px">
+						<button class="btn small" @click=${() => this.copyExport('md')}>
+							${this.copiedExport === 'md' ? 'Copied ✓' : 'Copy Markdown'}
+						</button>
+						<button class="btn small" @click=${() => this.copyExport('csv')}>
+							${this.copiedExport === 'csv' ? 'Copied ✓' : 'Copy CSV'}
+						</button>
+						<a class="btn small" href="/api/room/${this.roomId}/export" download>JSON</a>
+						<a class="btn small" href="/api/room/${this.roomId}/export?format=csv" download>CSV</a>
+					</div>
 					<div class="hist">
 						${s.history.map(
 							(r) => html`
@@ -963,6 +1079,40 @@ class RoomPage extends LitElement {
 			</div>
 		`;
 	}
+
+	/** History → clipboard, Markdown table or CSV (mirrors GET /export). */
+	private copyExport = async (kind: 'md' | 'csv'): Promise<void> => {
+		const history = this.state?.history ?? [];
+		let text: string;
+		if (kind === 'md') {
+			text = [
+				'| Story | Votes | Duration |',
+				'| --- | --- | --- |',
+				...history.map(
+					(r) =>
+						`| ${(r.story || 'Untitled').replaceAll('|', '\\|')} | ${r.votes
+							.map((v) => `${v.label}×${v.count}`)
+							.join(', ')} | ${this.formatDuration(r.durationMs)} |`,
+				),
+			].join('\n');
+		} else {
+			const esc = (s: string) => `"${s.replaceAll('"', '""')}"`;
+			text = [
+				'story,ended_at,duration_seconds,votes',
+				...history.map((r) =>
+					[
+						esc(r.story),
+						new Date(r.endedAt).toISOString(),
+						String(Math.round(r.durationMs / 1000)),
+						esc(r.votes.map((v) => `${v.label}×${v.count}`).join('; ')),
+					].join(','),
+				),
+			].join('\n');
+		}
+		await navigator.clipboard.writeText(text);
+		this.copiedExport = kind;
+		setTimeout(() => (this.copiedExport = null), 1500);
+	};
 
 	private formatDuration(ms: number): string {
 		const total = Math.round(ms / 1000);
@@ -1051,7 +1201,9 @@ class RoomPage extends LitElement {
 	private nextTicket = () => {
 		if (this.storySendHandle) clearTimeout(this.storySendHandle);
 		this.storySendHandle = null;
-		this.storyDraft = '';
+		// The server pulls the next queued story into place; mirror it locally
+		// so a blur-flush of a stale empty draft can't clobber it.
+		this.storyDraft = this.state?.queue?.[0] ?? '';
 		this.conn?.send({ type: 'clear', clearStory: true });
 		requestAnimationFrame(() => {
 			this.shadowRoot?.querySelector<HTMLTextAreaElement>('textarea.story')?.focus();

@@ -31,6 +31,8 @@ interface PersistedRoom {
 	roundStartedAt: number;
 	/** finished rounds, newest first (may be undefined in pre-history rooms) */
 	history?: RoundRecord[];
+	/** stories waiting their turn (may be undefined in pre-queue rooms) */
+	queue?: string[];
 	/** current host */
 	ownerId: string | null;
 	/** who reclaims the host role on return (first joiner, or explicit transferee) */
@@ -49,6 +51,17 @@ const MAX_HISTORY = 50;
 // via the alarm below. Longer than SEAT_TTL so reusable rooms never vanish
 // while anyone's seat is still worth keeping.
 const IDLE_TTL_MS = 120 * 24 * 60 * 60 * 1000;
+// Ticket-queue bounds — enough for a hefty backlog-refinement session.
+const MAX_QUEUE_ITEMS = 100;
+const MAX_QUEUE_ITEM_LEN = 500;
+
+/** Trim, drop empties, cap counts — shared by the WS message and POST /queue. */
+function sanitizeQueue(items: unknown): string[] {
+	return (Array.isArray(items) ? items : [])
+		.map((s) => String(s ?? '').trim().slice(0, MAX_QUEUE_ITEM_LEN))
+		.filter(Boolean)
+		.slice(0, MAX_QUEUE_ITEMS);
+}
 
 export class Room extends DurableObject<Env> {
 	private room: PersistedRoom | null = null;
@@ -95,7 +108,20 @@ export class Room extends DurableObject<Env> {
 	}
 
 	async fetch(request: Request): Promise<Response> {
-		if (new URL(request.url).pathname.endsWith('/peek')) {
+		const url = new URL(request.url);
+		const slug = url.pathname.match(/^\/api\/room\/([a-z0-9-]{1,64})\//)?.[1] ?? '';
+
+		// Plain-HTTP integration surface (the room slug is the capability,
+		// same as the app itself) — see "API" in the README. Anything that
+		// can run curl can import a backlog and export the results.
+		if (url.pathname.endsWith('/export') && request.method === 'GET') {
+			return this.handleExport(slug, url.searchParams.get('format'));
+		}
+		if (url.pathname.endsWith('/queue') && request.method === 'POST') {
+			return this.handleQueueImport(request, url.searchParams.get('mode'));
+		}
+
+		if (url.pathname.endsWith('/peek')) {
 			// Rooms are created lazily, so "exists" = someone has been here before.
 			// Reads storage directly (not load()) to avoid materializing the room.
 			const stored = await this.ctx.storage.get<PersistedRoom>(ROOM_KEY);
@@ -133,6 +159,66 @@ export class Room extends DurableObject<Env> {
 		this.broadcast(room);
 
 		return new Response(null, { status: 101, webSocket: client });
+	}
+
+	/** GET /export — session results as JSON (default) or CSV. */
+	private async handleExport(slug: string, format: string | null): Promise<Response> {
+		const stored = await this.ctx.storage.get<PersistedRoom>(ROOM_KEY);
+		if (!stored) return Response.json({ error: 'no such room' }, { status: 404 });
+		const history = stored.history ?? [];
+		if (format === 'csv') {
+			const esc = (s: string) => `"${s.replaceAll('"', '""')}"`;
+			const lines = [
+				'story,ended_at,duration_seconds,votes',
+				...history.map((r) =>
+					[
+						esc(r.story),
+						new Date(r.endedAt).toISOString(),
+						String(Math.round(r.durationMs / 1000)),
+						esc(r.votes.map((v) => `${v.label}×${v.count}`).join('; ')),
+					].join(','),
+				),
+			];
+			return new Response(lines.join('\n') + '\n', {
+				headers: {
+					'Content-Type': 'text/csv; charset=utf-8',
+					'Content-Disposition': `attachment; filename="${slug}-history.csv"`,
+				},
+			});
+		}
+		return Response.json({
+			room: slug,
+			name: stored.settings.roomName,
+			exportedAt: new Date().toISOString(),
+			queue: stored.queue ?? [],
+			history: history.map((r) => ({
+				story: r.story,
+				endedAt: new Date(r.endedAt).toISOString(),
+				durationSeconds: Math.round(r.durationMs / 1000),
+				votes: r.votes,
+			})),
+		});
+	}
+
+	/** POST /queue — JSON {items: []} or text/plain (one story per line).
+	 *  Appends by default; ?mode=replace swaps the whole queue. */
+	private async handleQueueImport(request: Request, mode: string | null): Promise<Response> {
+		let items: string[];
+		try {
+			const body = await request.text();
+			if (request.headers.get('Content-Type')?.includes('json')) {
+				items = sanitizeQueue((JSON.parse(body) as { items?: unknown }).items);
+			} else {
+				items = sanitizeQueue(body.split('\n'));
+			}
+		} catch {
+			return Response.json({ error: 'expected JSON {"items": [...]} or one story per line' }, { status: 400 });
+		}
+		const room = await this.load();
+		room.queue = mode === 'replace' ? items : sanitizeQueue([...(room.queue ?? []), ...items]);
+		await this.save();
+		this.broadcast(room); // connected clients see the imported queue live
+		return Response.json({ queued: room.queue.length });
 	}
 
 	async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
@@ -192,12 +278,18 @@ export class Room extends DurableObject<Env> {
 				room.revealed = false;
 				room.revealedAt = null;
 				room.roundStartedAt = Date.now();
-				if (msg.clearStory) room.story = '';
+				// "Next ticket" pulls the next queued story; blank if none.
+				if (msg.clearStory) room.story = room.queue?.shift() ?? '';
 				break;
 			}
 			case 'story': {
 				if (!room.participants[userId]) return;
 				room.story = String(msg.text ?? '').slice(0, 2000);
+				break;
+			}
+			case 'queue': {
+				if (!room.participants[userId]) return;
+				room.queue = sanitizeQueue(msg.items);
 				break;
 			}
 			case 'settings': {
@@ -381,6 +473,7 @@ export class Room extends DurableObject<Env> {
 			you: userId,
 			youJoined: room.participants[userId] !== undefined && connected.has(userId),
 			history: room.settings.keepHistory === false ? [] : (room.history ?? []),
+			queue: room.queue ?? [],
 			theme: resolveTheme(room.settings.theme),
 		};
 	}

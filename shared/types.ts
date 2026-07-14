@@ -80,6 +80,8 @@ export interface RoomStateView {
 	youJoined: boolean;
 	/** finished rounds, newest first; empty when keepHistory is off */
 	history: RoundRecord[];
+	/** stories waiting their turn; "Next ticket →" pulls from the front */
+	queue: string[];
 	/** settings.theme resolved to a concrete theme ('seasonal' → today's) */
 	theme: ThemeId;
 }
@@ -162,6 +164,8 @@ export type ClientMessage =
 	/** clearStory=true means "next ticket": also blank the story description */
 	| { type: 'clear'; clearStory?: boolean }
 	| { type: 'story'; text: string }
+	/** replace the ticket queue (client sends its full edited list) */
+	| { type: 'queue'; items: string[] }
 	| { type: 'settings'; settings: RoomSettings }
 	| { type: 'reaction'; emoji: string }
 	/** host only: hand the host role (and its reclaim rights) to another participant */

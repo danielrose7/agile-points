@@ -1,7 +1,7 @@
 export { Room } from './room';
 import { seasonalTheme, THEMES, type RoomPeek } from '../shared/types';
 
-const ROOM_API_RE = /^\/api\/room\/([a-z0-9-]{1,64})\/(ws|peek)$/;
+const ROOM_API_RE = /^\/api\/room\/([a-z0-9-]{1,64})\/(ws|peek|export|queue)$/;
 const ROOM_PAGE_RE = /^\/room\/([a-z0-9-]{1,64})$/;
 
 export default {

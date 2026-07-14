@@ -101,6 +101,35 @@ are generated per theme by `scripts/generate-og.sh` (SVG templates rasterized
 with rsvg-convert, palettes parsed from `src/styles.css`) and committed to
 `public/og/`.
 
+## Ticket queue & the import/export API
+
+Rooms have an "Up next" queue: paste tickets one-per-line in the app (or POST
+them, below) and **Next ticket →** pulls the front of the queue into the story
+after recording the finished round. History can be copied out of the app as
+Markdown or CSV.
+
+Deliberately **no tracker-specific integrations** (no Jira/Linear/GitHub
+plumbing in this repo). Instead, a room exposes a tiny plain-HTTP surface —
+the room slug is the capability, same trust model as the app itself — so any
+script, CLI, or MCP tool can bridge to whatever tracker you use:
+
+```sh
+# Import a backlog (plain text, one story per line; appends)
+jira-export-somehow | curl -X POST --data-binary @- \
+  https://story-points.danielrose7.workers.dev/api/room/<room>/queue
+
+# JSON works too; ?mode=replace swaps the queue instead of appending
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"items":["Login flow rework","Rate limiter"]}' \
+  https://story-points.danielrose7.workers.dev/api/room/<room>/queue?mode=replace
+
+# Export the session: JSON (queue + history), or ?format=csv
+curl https://story-points.danielrose7.workers.dev/api/room/<room>/export
+```
+
+Connected clients see imports live. A future "estimation session" skill for
+Claude/MCP can sit entirely on this surface without touching app code.
+
 ## Round history & results
 
 "Next ticket →" after a reveal records the round — story, vote spread, and
@@ -120,9 +149,8 @@ Candidates from a July 2026 survey of what competing tools (Kollabe,
 PlanningPokerOnline, Agile Poker, Async Poker, Parabol) offer, ranked by fit
 for this app's ethos (no accounts, zero deps, free tier, joy):
 
-1. **Ticket queue + results export** — line up multiple stories before a
-   session (paste a list), step through them, then copy the session's history
-   as markdown/CSV for Jira/Slack. Round history already records the data.
+1. ~~**Ticket queue + results export**~~ — shipped July 2026 (see "Ticket
+   queue & the import/export API" above).
 2. **Voting countdown** — host starts an N-second countdown that auto-reveals
    at zero. Pairs with the existing timer, chimes, and rabbit escalation.
 3. **Agreement % on reveal** — one derived stat next to average: how tightly
