@@ -557,6 +557,91 @@ class RoomPage extends LitElement {
 			overflow-wrap: anywhere;
 			word-break: break-all;
 		}
+
+		/* Vote distribution (revealed rounds with a spread) */
+		.dist {
+			margin-top: 18px;
+			display: grid;
+			gap: 7px;
+		}
+		.dist-row {
+			display: grid;
+			grid-template-columns: 52px 1fr 30px;
+			align-items: center;
+			gap: 10px;
+		}
+		.dist-label {
+			font-weight: 700;
+			text-align: right;
+		}
+		.dist-track {
+			background: var(--sp-chip-bg);
+			border-radius: 999px;
+			height: 18px;
+		}
+		.dist-fill {
+			height: 100%;
+			min-width: 18px;
+			background: var(--sp-accent);
+			border-radius: 999px;
+			animation: dist-grow 0.5s ease-out;
+		}
+		@keyframes dist-grow {
+			from {
+				width: 0;
+			}
+		}
+		.dist-count {
+			color: var(--sp-muted);
+			font-weight: 600;
+		}
+
+		/* Round history */
+		.hist-details summary {
+			cursor: pointer;
+			font-weight: 700;
+		}
+		.hist {
+			display: grid;
+			gap: 8px;
+			margin-top: 12px;
+		}
+		.hist-row {
+			display: grid;
+			gap: 5px;
+			padding: 10px 12px;
+			border: 1px solid var(--sp-divider);
+			border-radius: 10px;
+			background: var(--sp-btn-bg);
+		}
+		.hist-story {
+			font-weight: 600;
+			overflow-wrap: anywhere;
+		}
+		.hist-story.untitled {
+			color: var(--sp-muted);
+			font-weight: 400;
+			font-style: italic;
+		}
+		.hist-meta {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			align-items: center;
+			font-size: 0.85rem;
+			color: var(--sp-muted);
+		}
+		.hist-chip {
+			background: var(--sp-chip-bg);
+			color: var(--sp-surface-text);
+			border-radius: 6px;
+			padding: 2px 8px;
+			font-weight: 700;
+		}
+		.hist-when {
+			margin-left: auto;
+			white-space: nowrap;
+		}
 		`,
 	];
 
@@ -755,6 +840,7 @@ class RoomPage extends LitElement {
 			</div>
 
 			${s.revealed && voters.length ? this.renderStats(s) : nothing}
+			${s.settings.keepHistory !== false && s.history?.length ? this.renderHistory(s) : nothing}
 
 			<div class="reactions" title="React — 🐇 = we're going down a rabbit hole">
 				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.settings.theme] ?? [])].map(
@@ -788,10 +874,12 @@ class RoomPage extends LitElement {
 			${this.showSettings && isOwner
 				? html`<points-settings
 						.settings=${s.settings}
+						.historyCount=${s.history?.length ?? 0}
 						@save=${(e: CustomEvent) => {
 							this.conn?.send({ type: 'settings', settings: e.detail });
 							this.showSettings = false;
 						}}
+						@clear-history=${() => this.conn?.send({ type: 'clearHistory' })}
 						@close=${() => (this.showSettings = false)}
 					></points-settings>`
 				: nothing}
@@ -821,8 +909,74 @@ class RoomPage extends LitElement {
 						: nothing}
 					${consensus ? html`<div class="consensus">🎉 Consensus!</div>` : nothing}
 				</div>
+				${this.renderDistribution(s, votes)}
 			</div>
 		`;
+	}
+
+	/** Bar per deck value that got votes — only when the vote actually spread. */
+	private renderDistribution(s: RoomStateView, votes: string[]) {
+		const counts = new Map<string, number>();
+		for (const v of votes) counts.set(v, (counts.get(v) ?? 0) + 1);
+		if (counts.size < 2) return nothing;
+		const rows = s.settings.deck.filter((c) => counts.has(c.value));
+		const max = Math.max(...rows.map((c) => counts.get(c.value)!));
+		return html`
+			<div class="dist">
+				${rows.map((c) => {
+					const n = counts.get(c.value)!;
+					return html`
+						<div class="dist-row">
+							<span class="dist-label">${c.label}</span>
+							<div class="dist-track">
+								<div class="dist-fill" style="width:${(n / max) * 100}%"></div>
+							</div>
+							<span class="dist-count">${n}</span>
+						</div>
+					`;
+				})}
+			</div>
+		`;
+	}
+
+	private renderHistory(s: RoomStateView) {
+		return html`
+			<div class="panel">
+				<details class="hist-details">
+					<summary>📜 Round history (${s.history.length})</summary>
+					<div class="hist">
+						${s.history.map(
+							(r) => html`
+								<div class="hist-row">
+									<span class="hist-story ${r.story ? '' : 'untitled'}">${r.story || 'Untitled round'}</span>
+									<div class="hist-meta">
+										${r.votes.map((v) => html`<span class="hist-chip">${v.label}${v.count > 1 ? ` ×${v.count}` : ''}</span>`)}
+										<span>⏱ ${this.formatDuration(r.durationMs)}</span>
+										<span class="hist-when">${this.timeAgo(r.endedAt)}</span>
+									</div>
+								</div>
+							`,
+						)}
+					</div>
+				</details>
+			</div>
+		`;
+	}
+
+	private formatDuration(ms: number): string {
+		const total = Math.round(ms / 1000);
+		const m = Math.floor(total / 60);
+		const sec = total % 60;
+		return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}:${String(sec).padStart(2, '0')}`;
+	}
+
+	private timeAgo(ts: number): string {
+		const mins = Math.round((Date.now() - ts) / 60_000);
+		if (mins < 1) return 'just now';
+		if (mins < 60) return `${mins}m ago`;
+		const hours = Math.round(mins / 60);
+		if (hours < 24) return `${hours}h ago`;
+		return `${Math.round(hours / 24)}d ago`;
 	}
 
 	private labelFor(s: RoomStateView, value: string): string {

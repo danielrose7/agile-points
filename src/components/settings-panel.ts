@@ -7,10 +7,13 @@ import { DECK_PRESETS, THEMES } from '../../shared/types';
 class SettingsPanel extends LitElement {
 	static properties = {
 		settings: { attribute: false },
+		historyCount: { attribute: false },
 		draft: { state: true },
 	};
 
 	settings: RoomSettings | null = null;
+	/** how many recorded rounds exist — drives the "Clear history" button */
+	historyCount = 0;
 	draft: RoomSettings | null = null;
 
 	willUpdate(changed: Map<string, unknown>): void {
@@ -107,6 +110,16 @@ class SettingsPanel extends LitElement {
 			gap: 8px;
 			margin-top: 14px;
 		}
+		.btn.danger {
+			background: var(--sp-error-bg);
+			border-color: var(--sp-danger-soft);
+			color: var(--sp-error-text);
+		}
+		.history-clear {
+			margin: 10px 0 0 26px;
+			font-size: 0.85rem;
+			padding: 7px 12px;
+		}
 		`,
 	];
 
@@ -194,6 +207,22 @@ class SettingsPanel extends LitElement {
 					Timer chimes at 5 &amp; 10 minutes (room-wide; anyone can mute for themselves)
 				</label>
 
+				<label class="check">
+					<input
+						type="checkbox"
+						.checked=${d.keepHistory ?? true}
+						@change=${(e: Event) => this.patch({ keepHistory: (e.target as HTMLInputElement).checked })}
+					/>
+					Keep round history (story, votes, and duration of finished rounds)
+				</label>
+				${this.historyCount > 0
+					? html`
+							<button class="btn danger history-clear" @click=${this.clearHistory}>
+								Clear history (${this.historyCount} round${this.historyCount === 1 ? '' : 's'})
+							</button>
+						`
+					: ''}
+
 				<div class="actions">
 					<button class="btn primary" @click=${this.save}>Save settings</button>
 					<button class="btn" @click=${() => this.dispatchEvent(new CustomEvent('close'))}>Cancel</button>
@@ -229,6 +258,10 @@ class SettingsPanel extends LitElement {
 	private addCard = (): void => {
 		if (!this.draft) return;
 		this.draft = { ...this.draft, deck: [...this.draft.deck, { label: '', value: '' }] };
+	};
+
+	private clearHistory = (): void => {
+		this.dispatchEvent(new CustomEvent('clear-history'));
 	};
 
 	private save = (): void => {

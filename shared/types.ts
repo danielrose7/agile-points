@@ -35,6 +35,21 @@ export interface RoomSettings {
 	theme: ThemeId;
 	/** Room-wide switch for timer chimes (individuals can still mute locally) */
 	timerSounds: boolean;
+	/** Record finished rounds (story, votes, duration). Off = stop recording
+	 *  and hide the panel; existing entries survive until cleared. */
+	keepHistory: boolean;
+}
+
+/** One finished round ("Next ticket →" after a reveal). Aggregate counts
+ *  only — no per-person votes are kept beyond the live round. */
+export interface RoundRecord {
+	story: string;
+	/** when the round was closed out */
+	endedAt: number;
+	/** vote → reveal, matching the frozen round timer */
+	durationMs: number;
+	/** deck-ordered; only values that received votes */
+	votes: Array<{ label: string; value: string; count: number }>;
 }
 
 export interface ParticipantView {
@@ -59,6 +74,8 @@ export interface RoomStateView {
 	you: string;
 	/** whether the recipient has a seat (has joined) */
 	youJoined: boolean;
+	/** finished rounds, newest first; empty when keepHistory is off */
+	history: RoundRecord[];
 }
 
 /** Response of GET /api/room/<slug>/peek — 404 check + social-preview tags. */
@@ -143,6 +160,8 @@ export type ClientMessage =
 	| { type: 'reaction'; emoji: string }
 	/** host only: hand the host role (and its reclaim rights) to another participant */
 	| { type: 'transferHost'; to: string }
+	/** host only: wipe the recorded round history */
+	| { type: 'clearHistory' }
 	| { type: 'leave' };
 
 export type ServerMessage =
@@ -192,5 +211,6 @@ export function defaultSettings(): RoomSettings {
 		autoReveal: true,
 		theme: 'classic',
 		timerSounds: true,
+		keepHistory: true,
 	};
 }

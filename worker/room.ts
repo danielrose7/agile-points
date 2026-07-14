@@ -5,6 +5,7 @@ import type {
 	Role,
 	RoomSettings,
 	RoomStateView,
+	RoundRecord,
 	ServerMessage,
 } from '../shared/types';
 import { ALL_REACTION_EMOJI, defaultSettings, seasonalTheme, THEMES } from '../shared/types';
@@ -22,6 +23,8 @@ interface PersistedRoom {
 	revealed: boolean;
 	revealedAt: number | null;
 	roundStartedAt: number;
+	/** finished rounds, newest first (may be undefined in pre-history rooms) */
+	history?: RoundRecord[];
 	/** current host */
 	ownerId: string | null;
 	/** who reclaims the host role on return (first joiner, or explicit transferee) */
@@ -34,6 +37,8 @@ const ROOM_KEY = 'room';
 // Seats older than this with no live socket are pruned from the persisted map.
 // Generous so a room reused every ~2 weeks keeps everyone's name and role.
 const SEAT_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+// Finished rounds kept per room — plenty for a session or three of lookback.
+const MAX_HISTORY = 50;
 
 export class Room extends DurableObject<Env> {
 	private room: PersistedRoom | null = null;
@@ -152,6 +157,9 @@ export class Room extends DurableObject<Env> {
 			}
 			case 'clear': {
 				if (!room.participants[userId]) return;
+				// "Next ticket" (clearStory) after a reveal closes out a real
+				// round — record it. A plain "Re-vote" discards the round.
+				if (msg.clearStory && room.revealed) this.recordRound(room);
 				room.votes = {};
 				room.revealed = false;
 				room.revealedAt = null;
@@ -182,6 +190,7 @@ export class Room extends DurableObject<Env> {
 					theme: THEMES.some((t) => t.id === s?.theme) ? s.theme : 'classic',
 					// default on; only an explicit false turns it off (old clients omit it)
 					timerSounds: s?.timerSounds !== false,
+					keepHistory: s?.keepHistory !== false,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {
@@ -197,6 +206,11 @@ export class Room extends DurableObject<Env> {
 				const payload: ServerMessage = { type: 'reaction', emoji: msg.emoji, from: userId, name: sender.name };
 				for (const socket of this.ctx.getWebSockets()) this.send(socket, payload);
 				return;
+			}
+			case 'clearHistory': {
+				if (room.ownerId !== userId) return this.sendError(ws, 'Only the host can clear the history');
+				room.history = [];
+				break;
 			}
 			case 'transferHost': {
 				if (room.ownerId !== userId) return this.sendError(ws, 'Only the host can hand off the host role');
@@ -268,6 +282,28 @@ export class Room extends DurableObject<Env> {
 		if (candidates.length > 0) room.ownerId = candidates[0][0];
 	}
 
+	/** Fold the revealed round into history (aggregate counts, deck order). */
+	private recordRound(room: PersistedRoom): void {
+		// Old rooms predate keepHistory; undefined means the default (on).
+		if (room.settings.keepHistory === false) return;
+		const counts = new Map<string, number>();
+		for (const v of Object.values(room.votes)) counts.set(v, (counts.get(v) ?? 0) + 1);
+		if (counts.size === 0) return;
+		const votes: RoundRecord['votes'] = room.settings.deck
+			.filter((c) => counts.has(c.value))
+			.map((c) => ({ label: c.label, value: c.value, count: counts.get(c.value)! }));
+		const endedAt = Date.now();
+		room.history = [
+			{
+				story: room.story,
+				endedAt,
+				durationMs: Math.max(0, (room.revealedAt ?? endedAt) - room.roundStartedAt),
+				votes,
+			},
+			...(room.history ?? []),
+		].slice(0, MAX_HISTORY);
+	}
+
 	private maybeAutoReveal(room: PersistedRoom): void {
 		if (!room.settings.autoReveal || room.revealed) return;
 		const connected = this.connectedIds();
@@ -316,6 +352,7 @@ export class Room extends DurableObject<Env> {
 			participants,
 			you: userId,
 			youJoined: room.participants[userId] !== undefined && connected.has(userId),
+			history: room.settings.keepHistory === false ? [] : (room.history ?? []),
 		};
 	}
 
