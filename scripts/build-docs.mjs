@@ -248,8 +248,11 @@ ${guides}
 );
 console.log('✓ llms.txt');
 
+// Leads with plain text — starting with an HTML comment makes content-type
+// sniffing serve it as text/html.
 fs.writeFileSync(
 	path.join(OUT, 'llms-full.txt'),
-	pages.map((p) => `<!-- ${SITE}/docs/${p.name}.md -->\n\n${p.body}`).join('\n\n---\n\n'),
+	`Story Points — full documentation (${SITE})\n\n` +
+		pages.map((p) => `Source: ${SITE}/docs/${p.name}.md\n\n${p.body}`).join('\n\n---\n\n'),
 );
 console.log('✓ llms-full.txt');

@@ -1,4 +1,6 @@
-<!-- https://story-points.danielrose7.workers.dev/docs/index.md -->
+Story Points — full documentation (https://story-points.danielrose7.workers.dev)
+
+Source: https://story-points.danielrose7.workers.dev/docs/index.md
 
 # Story Points
 
@@ -35,7 +37,7 @@ reclaims your seat.
 
 ---
 
-<!-- https://story-points.danielrose7.workers.dev/docs/getting-started.md -->
+Source: https://story-points.danielrose7.workers.dev/docs/getting-started.md
 
 # Getting started
 
@@ -85,7 +87,7 @@ watch and manage, but don't hold up the reveal).
 
 ---
 
-<!-- https://story-points.danielrose7.workers.dev/docs/features.md -->
+Source: https://story-points.danielrose7.workers.dev/docs/features.md
 
 # Features
 
@@ -158,7 +160,7 @@ up-and-to-the-right charts — chosen by how the vote landed. Never persisted.
 
 ---
 
-<!-- https://story-points.danielrose7.workers.dev/docs/themes.md -->
+Source: https://story-points.danielrose7.workers.dev/docs/themes.md
 
 # Themes
 
@@ -188,7 +190,7 @@ properties inherit into shadow DOM, so every component follows automatically.
 
 ---
 
-<!-- https://story-points.danielrose7.workers.dev/docs/api.md -->
+Source: https://story-points.danielrose7.workers.dev/docs/api.md
 
 # API
 
