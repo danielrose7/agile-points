@@ -85,7 +85,6 @@ with rsvg-convert, palettes parsed from `src/styles.css`) and committed to
 
 ## Roadmap
 
-- Remaining themes (surf 🏄, birthday 🎂, nightclub 🪩)
 - Round history (story + result + duration per round)
 - Vote distribution chart on reveal
 - Optional room-idle cleanup via DO alarms
