@@ -4,7 +4,7 @@ import { generateRoomSlug } from '../slug';
 import { navigate } from '../main';
 import { applyTheme, todaysTheme } from '../theme';
 import { getRecentRooms, type RecentRoom } from '../recents';
-import type { RoomPeek } from '../../shared/types';
+import { ROOM_PRESETS, type RoomPeek } from '../../shared/types';
 
 class HomePage extends LitElement {
 	static properties = {
@@ -15,6 +15,7 @@ class HomePage extends LitElement {
 	};
 
 	joinCode = '';
+	preset = 'sprint';
 	lostPath = '';
 	lostRoomExists: boolean | null = null;
 	recents: RecentRoom[] = getRecentRooms();
@@ -189,6 +190,23 @@ class HomePage extends LitElement {
 		button.primary:hover {
 			transform: translateY(-2px);
 		}
+		.preset-row {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			justify-content: center;
+			margin-top: 10px;
+			font-size: 0.85rem;
+			color: var(--sp-muted);
+		}
+		.preset-row select {
+			font: inherit;
+			padding: 6px 8px;
+			border: 1px solid var(--sp-border);
+			border-radius: 8px;
+			background: var(--sp-btn-bg);
+			color: var(--sp-surface-text);
+		}
 		.divider {
 			margin: 24px 0 16px;
 			color: var(--sp-muted);
@@ -229,6 +247,16 @@ class HomePage extends LitElement {
 				<h1>🃏 Story Points</h1>
 				<p class="tagline">Estimate together, in realtime.</p>
 				<button class="primary" @click=${this.createRoom}>Create a room</button>
+				<label class="preset-row">
+					<span>starting from</span>
+					<select @change=${(e: Event) => (this.preset = (e.target as HTMLSelectElement).value)}>
+						${ROOM_PRESETS.map(
+							(p) => html`<option value=${p.id} title=${p.description} ?selected=${p.id === this.preset}>
+								${p.label}
+							</option>`,
+						)}
+					</select>
+				</label>
 				<div class="divider">or join an existing one</div>
 				<form @submit=${this.joinRoom}>
 					<input
@@ -302,7 +330,8 @@ class HomePage extends LitElement {
 	}
 
 	private createRoom = () => {
-		navigate(`/room/${generateRoomSlug()}`);
+		const q = this.preset && this.preset !== 'sprint' ? `?preset=${this.preset}` : '';
+		navigate(`/room/${generateRoomSlug()}${q}`);
 	};
 
 	private joinRoom = (e: SubmitEvent) => {

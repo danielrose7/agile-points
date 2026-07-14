@@ -101,6 +101,19 @@ are generated per theme by `scripts/generate-og.sh` (SVG templates rasterized
 with rsvg-convert, palettes parsed from `src/styles.css`) and committed to
 `public/og/`.
 
+## Feature toggles & creation presets
+
+Every optional feature has a host toggle in **Room settings → Features**:
+auto-reveal, timer chimes, voting countdown (+ seconds), ticket queue, away
+votes, anonymous voting, vote statistics, round history. Settings are
+organized into tabs (General / Theme / Features).
+
+"Create a room" on the home page offers **presets** that seed a fresh room:
+🏃 Sprint planning (Fibonacci, everything on), 👕 T-shirt sizing, 🚑 Triage
+(grouped severity deck, no chimes/stats), 🎯 Minimal (just cards + reveal).
+Deck cards can carry a **group**, rendered as labeled clusters in the voting
+hand. All of it stays editable in room settings afterwards.
+
 ## Ticket queue & the import/export API
 
 Rooms have an "Up next" queue: paste tickets one-per-line in the app (or POST

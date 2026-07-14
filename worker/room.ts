@@ -8,7 +8,7 @@ import type {
 	RoundRecord,
 	ServerMessage,
 } from '../shared/types';
-import { ALL_REACTION_EMOJI, defaultSettings, seasonalTheme, THEMES } from '../shared/types';
+import { ALL_REACTION_EMOJI, defaultSettings, ROOM_PRESETS, seasonalTheme, THEMES } from '../shared/types';
 import type { ThemeChoice, ThemeId } from '../shared/types';
 
 /** 'seasonal' rooms follow the calendar; resolved fresh on every view. */
@@ -67,11 +67,15 @@ function sanitizeQueue(items: unknown): string[] {
 
 export class Room extends DurableObject<Env> {
 	private room: PersistedRoom | null = null;
+	/** true until the room's first save — creation presets apply only then */
+	private freshRoom = false;
 
 	private async load(): Promise<PersistedRoom> {
 		if (!this.room) {
+			const stored = await this.ctx.storage.get<PersistedRoom>(ROOM_KEY);
+			this.freshRoom = stored === undefined;
 			this.room =
-				(await this.ctx.storage.get<PersistedRoom>(ROOM_KEY)) ?? {
+				stored ?? {
 					// Fresh rooms default to theme 'seasonal' — it tracks the
 					// calendar until the host pins one in settings.
 					settings: defaultSettings(),
@@ -252,6 +256,12 @@ export class Room extends DurableObject<Env> {
 				const name = String(msg.name ?? '').trim().slice(0, 40);
 				const role: Role = msg.role === 'observer' ? 'observer' : 'voter';
 				if (!name) return this.sendError(ws, 'Name is required');
+				// The join that creates the room may carry a creation preset.
+				if (this.freshRoom) {
+					const preset = ROOM_PRESETS.find((p) => p.id === msg.preset);
+					if (preset) room.settings = { ...room.settings, ...structuredClone(preset.settings) };
+					this.freshRoom = false;
+				}
 				const existing = room.participants[userId];
 				room.participants[userId] = {
 					name,

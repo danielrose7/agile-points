@@ -180,7 +180,8 @@ export function seasonalTheme(date: Date): ThemeId {
 }
 
 export type ClientMessage =
-	| { type: 'join'; name: string; role: Role }
+	/** preset only applies when this join creates the room */
+	| { type: 'join'; name: string; role: Role; preset?: string }
 	| { type: 'vote'; value: string | null }
 	| { type: 'reveal' }
 	/** clearStory=true means "next ticket": also blank the story description */
@@ -237,6 +238,58 @@ export const DECK_PRESETS: Record<string, DeckCard[]> = {
 		{ label: '?', value: '?' },
 	],
 };
+
+/** Creation presets: bundles of deck + feature toggles applied to a fresh
+ *  room when its first participant joins. Everything remains editable in
+ *  room settings afterwards. */
+export const ROOM_PRESETS: Array<{
+	id: string;
+	label: string;
+	description: string;
+	settings: Partial<RoomSettings>;
+}> = [
+	{
+		id: 'sprint',
+		label: '🏃 Sprint planning',
+		description: 'Fibonacci deck, all features on',
+		settings: {},
+	},
+	{
+		id: 'tshirt',
+		label: '👕 T-shirt sizing',
+		description: 'XS–XL deck, all features on',
+		settings: { deck: DECK_PRESETS.tshirt },
+	},
+	{
+		id: 'triage',
+		label: '🚑 Triage',
+		description: 'Severity tiers instead of points; no timer chimes',
+		settings: {
+			deck: [
+				{ label: 'Urgent', value: 'urgent', group: 'Severity' },
+				{ label: 'High', value: 'high', group: 'Severity' },
+				{ label: 'Medium', value: 'medium', group: 'Severity' },
+				{ label: 'Low', value: 'low', group: 'Severity' },
+				{ label: 'Cancel', value: 'cancel' },
+				{ label: '?', value: '?' },
+			],
+			timerSounds: false,
+			voteStats: false,
+		},
+	},
+	{
+		id: 'minimal',
+		label: '🎯 Minimal',
+		description: 'Just cards and a reveal — no queue, history, stats, countdown, or chimes',
+		settings: {
+			ticketQueue: false,
+			keepHistory: false,
+			voteStats: false,
+			countdown: false,
+			timerSounds: false,
+		},
+	},
+];
 
 export function defaultSettings(): RoomSettings {
 	return {

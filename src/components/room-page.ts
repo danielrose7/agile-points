@@ -1321,7 +1321,11 @@ class RoomPage extends LitElement {
 		if (!name) return;
 		saveName(name);
 		saveRole(this.roomId, this.roleDraft);
-		this.conn?.send({ type: 'join', name, role: this.roleDraft });
+		// A ?preset=… from "Create a room" seeds settings iff this join
+		// creates the room; drop it from the URL so invites stay clean.
+		const preset = new URLSearchParams(location.search).get('preset') ?? undefined;
+		if (preset) history.replaceState(null, '', location.pathname);
+		this.conn?.send({ type: 'join', name, role: this.roleDraft, preset });
 	};
 
 	private switchRole = () => {
