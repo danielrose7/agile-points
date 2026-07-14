@@ -936,7 +936,9 @@ class RoomPage extends LitElement {
 														>${this.labelFor(s, p.vote)}</span
 													>`
 												: p.hasVoted
-													? html`<span class="vote-chip hidden-vote">?</span>`
+													? s.revealed
+														? html`<span class="vote-chip hidden-vote" title="Voted (anonymous)">✓</span>`
+														: html`<span class="vote-chip hidden-vote">?</span>`
 													: html`<span class="vote-chip waiting">…</span>`}
 									</td>
 								</tr>
@@ -994,9 +996,8 @@ class RoomPage extends LitElement {
 	}
 
 	private renderStats(s: RoomStateView) {
-		const votes = s.participants
-			.filter((p) => p.role === 'voter' && p.vote !== null)
-			.map((p) => p.vote as string);
+		// Server-side aggregate: correct even when votes are anonymous.
+		const votes = s.voteCounts.flatMap((v) => Array(v.count).fill(v.value) as string[]);
 		const numeric = votes.map(Number).filter((n) => !Number.isNaN(n));
 		const avg = numeric.length ? numeric.reduce((a, b) => a + b, 0) / numeric.length : null;
 		const consensus = votes.length > 1 && votes.every((v) => v === votes[0]);
@@ -1241,7 +1242,8 @@ class RoomPage extends LitElement {
 
 	/** Pick a celebration based on how the vote landed. */
 	private celebrateReveal(s: RoomStateView): void {
-		const votes = s.participants.filter((p) => p.role === 'voter' && p.vote !== null).map((p) => p.vote as string);
+		// Aggregate counts, not per-seat votes — attribution may be anonymous.
+		const votes = s.voteCounts.flatMap((v) => Array(v.count).fill(v.value) as string[]);
 		if (votes.length < 2) return;
 		if (votes.every((v) => v === '?')) return this.fx?.celebrate('allq');
 		if (votes.every((v) => v === votes[0])) return this.fx?.celebrate('consensus');

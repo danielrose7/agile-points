@@ -348,6 +348,15 @@ class SettingsPanel extends LitElement {
 			<label class="check">
 				<input
 					type="checkbox"
+					.checked=${d.anonymousVotes ?? false}
+					@change=${(e: Event) => this.patch({ anonymousVotes: (e.target as HTMLInputElement).checked })}
+				/>
+				Anonymous voting (reveal shows counts and stats, never who voted what)
+			</label>
+
+			<label class="check">
+				<input
+					type="checkbox"
 					.checked=${d.voteStats ?? true}
 					@change=${(e: Event) => this.patch({ voteStats: (e.target as HTMLInputElement).checked })}
 				/>

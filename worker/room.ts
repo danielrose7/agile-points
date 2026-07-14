@@ -347,6 +347,7 @@ export class Room extends DurableObject<Env> {
 					countdown: s?.countdown !== false,
 					countdownSeconds: Math.min(600, Math.max(5, Math.round(Number(s?.countdownSeconds)) || 60)),
 					voteStats: s?.voteStats !== false,
+					anonymousVotes: s?.anonymousVotes === true,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {
@@ -438,16 +439,21 @@ export class Room extends DurableObject<Env> {
 		if (candidates.length > 0) room.ownerId = candidates[0][0];
 	}
 
+	/** Aggregate votes into deck-ordered counts (history + reveal stats). */
+	private voteCounts(room: PersistedRoom): Array<{ label: string; value: string; count: number }> {
+		const counts = new Map<string, number>();
+		for (const v of Object.values(room.votes)) counts.set(v, (counts.get(v) ?? 0) + 1);
+		return room.settings.deck
+			.filter((c) => counts.has(c.value))
+			.map((c) => ({ label: c.label, value: c.value, count: counts.get(c.value)! }));
+	}
+
 	/** Fold the revealed round into history (aggregate counts, deck order). */
 	private recordRound(room: PersistedRoom): void {
 		// Old rooms predate keepHistory; undefined means the default (on).
 		if (room.settings.keepHistory === false) return;
-		const counts = new Map<string, number>();
-		for (const v of Object.values(room.votes)) counts.set(v, (counts.get(v) ?? 0) + 1);
-		if (counts.size === 0) return;
-		const votes: RoundRecord['votes'] = room.settings.deck
-			.filter((c) => counts.has(c.value))
-			.map((c) => ({ label: c.label, value: c.value, count: counts.get(c.value)! }));
+		const votes = this.voteCounts(room);
+		if (votes.length === 0) return;
 		const endedAt = Date.now();
 		room.history = [
 			{
@@ -490,12 +496,15 @@ export class Room extends DurableObject<Env> {
 			.filter(([id]) => connected.has(id))
 			.map(([id, p]) => {
 				const vote = room.votes[id];
+				// Anonymous rooms never attribute votes to seats — reveal or
+				// not — except your own, which you already know.
+				const visible = id === userId || (room.revealed && room.settings.anonymousVotes !== true);
 				return {
 					id,
 					name: p.name,
 					role: p.role,
 					hasVoted: vote !== undefined,
-					vote: vote !== undefined && (room.revealed || id === userId) ? vote : null,
+					vote: vote !== undefined && visible ? vote : null,
 					isOwner: id === room.ownerId,
 				};
 			})
@@ -513,6 +522,7 @@ export class Room extends DurableObject<Env> {
 			queue: room.settings.ticketQueue === false ? [] : (room.queue ?? []),
 			theme: resolveTheme(room.settings.theme),
 			countdownEndsAt: room.countdownEndsAt ?? null,
+			voteCounts: room.revealed ? this.voteCounts(room) : [],
 		};
 	}
 

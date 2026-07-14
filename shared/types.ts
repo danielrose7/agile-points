@@ -53,6 +53,8 @@ export interface RoomSettings {
 	countdownSeconds: number;
 	/** Result extras on reveal: average, agreement %, distribution chart. */
 	voteStats: boolean;
+	/** Reveal shows aggregate counts only — never who voted what. */
+	anonymousVotes: boolean;
 }
 
 /** One finished round ("Next ticket →" after a reveal). Aggregate counts
@@ -97,6 +99,8 @@ export interface RoomStateView {
 	theme: ThemeId;
 	/** epoch ms when the running countdown auto-reveals; null = none */
 	countdownEndsAt: number | null;
+	/** aggregate vote counts in deck order; populated once revealed */
+	voteCounts: Array<{ label: string; value: string; count: number }>;
 }
 
 /** Response of GET /api/room/<slug>/peek — 404 check + social-preview tags. */
@@ -241,5 +245,6 @@ export function defaultSettings(): RoomSettings {
 		countdown: true,
 		countdownSeconds: 60,
 		voteStats: true,
+		anonymousVotes: false,
 	};
 }
