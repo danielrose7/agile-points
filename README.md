@@ -83,8 +83,19 @@ are generated per theme by `scripts/generate-og.sh` (SVG templates rasterized
 with rsvg-convert, palettes parsed from `src/styles.css`) and committed to
 `public/og/`.
 
+## Round history & results
+
+"Next ticket →" after a reveal records the round — story, vote spread, and
+time-to-reveal — into a collapsible 📜 panel (last 50 rounds, newest first).
+It's a room setting (**Keep round history**, on by default): switching it off
+stops recording and hides the panel, and the host can wipe entries with
+**Clear history** in settings. Revealed rounds with a spread also get a small
+vote-distribution bar chart in the Results panel.
+
+Rooms clean up after themselves: a Durable Object alarm deletes any room left
+untouched for 120 days (no writes, no live connections), so abandoned rooms
+cost nothing forever.
+
 ## Roadmap
 
-- Round history (story + result + duration per round)
-- Vote distribution chart on reveal
-- Optional room-idle cleanup via DO alarms
+- (empty — suggest something!)

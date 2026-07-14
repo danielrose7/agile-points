@@ -39,6 +39,10 @@ const ROOM_KEY = 'room';
 const SEAT_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 // Finished rounds kept per room — plenty for a session or three of lookback.
 const MAX_HISTORY = 50;
+// A room untouched for this long (no writes, no live sockets) deletes itself
+// via the alarm below. Longer than SEAT_TTL so reusable rooms never vanish
+// while anyone's seat is still worth keeping.
+const IDLE_TTL_MS = 120 * 24 * 60 * 60 * 1000;
 
 export class Room extends DurableObject<Env> {
 	private room: PersistedRoom | null = null;
@@ -63,7 +67,24 @@ export class Room extends DurableObject<Env> {
 	}
 
 	private async save(): Promise<void> {
-		if (this.room) await this.ctx.storage.put(ROOM_KEY, this.room);
+		if (!this.room) return;
+		await this.ctx.storage.put(ROOM_KEY, this.room);
+		// Every write pushes the self-destruct out; it only ever fires on
+		// rooms nobody has touched in IDLE_TTL_MS.
+		await this.ctx.storage.setAlarm(Date.now() + IDLE_TTL_MS);
+	}
+
+	/** Idle cleanup: an abandoned room deletes its storage and evaporates. */
+	async alarm(): Promise<void> {
+		if (this.ctx.getWebSockets().length > 0) {
+			// Someone is connected (just quietly) — check back later.
+			await this.ctx.storage.setAlarm(Date.now() + IDLE_TTL_MS);
+			return;
+		}
+		this.room = null;
+		// deleteAll() does not clear a pending alarm — do both.
+		await this.ctx.storage.deleteAlarm();
+		await this.ctx.storage.deleteAll();
 	}
 
 	async fetch(request: Request): Promise<Response> {
