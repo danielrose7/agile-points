@@ -9,6 +9,7 @@ import { REACTION_EMOJI, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
 import { applyTheme } from '../theme';
 import { touchRecentRoom } from '../recents';
+import { getScope, getTracker, importPrompt, setScope, setTracker, TRACKERS, writebackPrompt } from '../agent-prompts';
 import './settings-panel';
 import './fx-layer';
 
@@ -27,6 +28,9 @@ class RoomPage extends LitElement {
 		elapsed: { state: true },
 		copied: { state: true },
 		copiedExport: { state: true },
+		copiedPrompt: { state: true },
+		tracker: { state: true },
+		trackerScope: { state: true },
 		storyDraft: { state: true },
 		queueDraft: { state: true },
 		muted: { state: true },
@@ -44,6 +48,9 @@ class RoomPage extends LitElement {
 	elapsed = 0;
 	copied = false;
 	copiedExport: 'md' | 'csv' | null = null;
+	copiedPrompt: 'import' | 'export' | null = null;
+	tracker = getTracker();
+	trackerScope = getScope(getTracker());
 	storyDraft = '';
 	queueDraft = '';
 	muted = isMuted();
@@ -708,6 +715,82 @@ class RoomPage extends LitElement {
 		tr.seat.away {
 			opacity: 0.6;
 		}
+
+		/* "Use your agent" prompt block */
+		.agent-block {
+			margin-top: 14px;
+			padding: 12px;
+			border: 1px dashed var(--sp-border);
+			border-radius: 10px;
+			display: grid;
+			gap: 8px;
+			justify-items: start;
+		}
+		.agent-head {
+			font-size: 0.8rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			color: var(--sp-muted);
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			width: 100%;
+		}
+		.agent-docs {
+			margin-left: auto;
+			width: 20px;
+			height: 20px;
+			display: grid;
+			place-items: center;
+			border-radius: 50%;
+			border: 1px solid var(--sp-border);
+			color: var(--sp-muted);
+			text-decoration: none;
+			font-weight: 700;
+		}
+		.agent-docs:hover {
+			border-color: var(--sp-accent);
+			color: var(--sp-surface-text);
+		}
+		.agent-trackers {
+			display: flex;
+			gap: 6px;
+			flex-wrap: wrap;
+		}
+		.chip {
+			padding: 5px 12px;
+			border-radius: 999px;
+			border: 1px solid var(--sp-border);
+			background: var(--sp-btn-bg);
+			font: inherit;
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+		}
+		.chip.active {
+			background: var(--sp-accent);
+			border-color: var(--sp-accent);
+			color: var(--sp-accent-text);
+		}
+		.agent-scope {
+			width: 100%;
+			padding: 8px 10px;
+			border: 1px solid var(--sp-border);
+			border-radius: 8px;
+			font: inherit;
+			font-size: 0.9rem;
+		}
+		.agent-prompt {
+			width: 100%;
+			margin: 0;
+			padding: 10px 12px;
+			background: var(--sp-code-bg);
+			border-radius: 8px;
+			font-size: 0.82rem;
+			white-space: pre-wrap;
+			overflow-wrap: anywhere;
+		}
 		.btn.countdown.running {
 			border-color: var(--sp-timer-warn);
 			color: var(--sp-timer-warn);
@@ -1098,11 +1181,69 @@ class RoomPage extends LitElement {
 								Add to queue
 							</button>
 						</div>
+						${s.settings.agentPrompts !== false ? this.renderAgentPrompt('import') : nothing}
 					</div>
 				</details>
 			</div>
 		`;
 	}
+
+	/** "Use your agent" block: tracker chips + scope + copyable prompt. */
+	private renderAgentPrompt(kind: 'import' | 'export') {
+		const t = TRACKERS.find((x) => x.id === this.tracker) ?? TRACKERS[TRACKERS.length - 1];
+		const roomUrl = `${location.origin}/room/${this.roomId}`;
+		const prompt =
+			kind === 'import'
+				? importPrompt(this.tracker, roomUrl, this.trackerScope)
+				: writebackPrompt(this.tracker, roomUrl);
+		return html`
+			<div class="agent-block">
+				<div class="agent-head">
+					🤖 ${kind === 'import' ? 'Fill the queue with your agent' : 'Write results back with your agent'}
+					<a class="agent-docs" href="/docs/agent-setup" title="How agent setup works">?</a>
+				</div>
+				<div class="agent-trackers">
+					${TRACKERS.map(
+						(x) => html`
+							<button
+								class="chip ${this.tracker === x.id ? 'active' : ''}"
+								@click=${() => this.pickTracker(x.id)}
+							>
+								${x.label}
+							</button>
+						`,
+					)}
+				</div>
+				${kind === 'import'
+					? html`<input
+							class="agent-scope"
+							placeholder=${t.scopePlaceholder}
+							.value=${this.trackerScope}
+							@input=${(e: InputEvent) => {
+								this.trackerScope = (e.target as HTMLInputElement).value;
+								setScope(this.tracker, this.trackerScope);
+							}}
+						/>`
+					: nothing}
+				<pre class="agent-prompt">${prompt}</pre>
+				<button class="btn small ${this.copiedPrompt === kind ? 'copied' : ''}" @click=${() => this.copyPrompt(kind, prompt)}>
+					${this.copiedPrompt === kind ? 'Copied ✓' : 'Copy prompt'}
+				</button>
+			</div>
+		`;
+	}
+
+	private pickTracker(id: string): void {
+		this.tracker = id;
+		setTracker(id);
+		this.trackerScope = getScope(id);
+	}
+
+	private copyPrompt = async (kind: 'import' | 'export', prompt: string): Promise<void> => {
+		await navigator.clipboard.writeText(prompt);
+		this.copiedPrompt = kind;
+		setTimeout(() => (this.copiedPrompt = null), COPIED_RESET_MS);
+	};
 
 	private setQueue(items: string[]): void {
 		this.conn?.send({ type: 'queue', items });
@@ -1130,6 +1271,7 @@ class RoomPage extends LitElement {
 						<a class="btn small" href="/api/room/${this.roomId}/export" download>Download JSON</a>
 						<a class="btn small" href="/api/room/${this.roomId}/export?format=csv" download>Download CSV</a>
 					</div>
+					${s.settings.agentPrompts !== false ? this.renderAgentPrompt('export') : nothing}
 					<div class="hist">
 						${s.history.map(
 							(r) => html`

@@ -417,6 +417,15 @@ class SettingsPanel extends LitElement {
 			<label class="check">
 				<input
 					type="checkbox"
+					.checked=${d.agentPrompts ?? true}
+					@change=${(e: Event) => this.patch({ agentPrompts: (e.target as HTMLInputElement).checked })}
+				/>
+				“Use your agent” prompts in the queue and history panels (Linear/Jira/GitHub samples)
+			</label>
+
+			<label class="check">
+				<input
+					type="checkbox"
 					.checked=${d.keepHistory ?? true}
 					@change=${(e: Event) => this.patch({ keepHistory: (e.target as HTMLInputElement).checked })}
 				/>

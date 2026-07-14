@@ -375,6 +375,7 @@ export class Room extends DurableObject<Env> {
 					anonymousVotes: s?.anonymousVotes === true,
 					awayVotes: s?.awayVotes !== false,
 					freshClock: s?.freshClock !== false,
+					agentPrompts: s?.agentPrompts !== false,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {

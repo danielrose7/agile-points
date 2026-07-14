@@ -61,6 +61,8 @@ export interface RoomSettings {
 	/** Restart the round clock when the first person returns to a room
 	 *  everyone left mid-round (prevents day-old timers full of rabbits). */
 	freshClock: boolean;
+	/** Copyable "use your agent" prompts in the queue/history panels. */
+	agentPrompts: boolean;
 }
 
 /** One finished round ("Next ticket →" after a reveal). Aggregate counts
@@ -309,5 +311,6 @@ export function defaultSettings(): RoomSettings {
 		anonymousVotes: false,
 		awayVotes: true,
 		freshClock: true,
+		agentPrompts: true,
 	};
 }
