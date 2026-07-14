@@ -5,8 +5,11 @@
 	"compatibility_date": "2026-07-13",
 	"compatibility_flags": ["nodejs_compat"],
 	"assets": {
+		"binding": "ASSETS",
 		"not_found_handling": "single-page-application",
-		"run_worker_first": ["/api/*"]
+		// "/" and "/room/*" hit the worker so it can stamp per-room
+		// social-preview meta tags into the SPA shell before serving it.
+		"run_worker_first": ["/api/*", "/", "/room/*"]
 	},
 	"durable_objects": {
 		"bindings": [

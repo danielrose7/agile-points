@@ -27,4 +27,7 @@ overriding these tokens, and any hardcoded color silently breaks theming.
 - Ephemeral social features (reactions, celebrations) ride the WebSocket
   broadcast and are never persisted to Durable Object storage.
 - After changing `wrangler.jsonc`, rerun `npx wrangler types`.
+- After adding or recoloring a theme in `src/styles.css`, rerun
+  `scripts/generate-og.sh` (needs `brew install librsvg`) — it regenerates
+  the per-theme social-preview PNGs in `public/og/` from those palettes.
 - Deploy = `npm run deploy` (build + wrangler). Commit before deploying.

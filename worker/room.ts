@@ -64,8 +64,15 @@ export class Room extends DurableObject<Env> {
 	async fetch(request: Request): Promise<Response> {
 		if (new URL(request.url).pathname.endsWith('/peek')) {
 			// Rooms are created lazily, so "exists" = someone has been here before.
-			const exists = (await this.ctx.storage.get(ROOM_KEY)) !== undefined;
-			return Response.json({ exists });
+			// Reads storage directly (not load()) to avoid materializing the room.
+			const stored = await this.ctx.storage.get<PersistedRoom>(ROOM_KEY);
+			if (!stored) return Response.json({ exists: false });
+			// Name + theme feed the social-preview meta tags in worker/index.ts.
+			return Response.json({
+				exists: true,
+				name: stored.settings.roomName,
+				theme: stored.settings.theme,
+			});
 		}
 		if (request.headers.get('Upgrade') !== 'websocket') {
 			return new Response('Expected WebSocket', { status: 426 });

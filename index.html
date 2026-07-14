@@ -5,6 +5,19 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Story Points</title>
 		<meta name="description" content="Realtime pointing poker for agile teams" />
+		<!-- Social previews. Static defaults; the Worker rewrites these per
+		     request for "/" and "/room/*" (room name in the title, room or
+		     seasonal theme image) — see worker/index.ts. -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Story Points" />
+		<meta property="og:title" content="Story Points" />
+		<meta property="og:description" content="Estimate together, in realtime." />
+		<meta property="og:url" content="https://story-points.danielrose7.workers.dev/" />
+		<meta property="og:image" content="https://story-points.danielrose7.workers.dev/og/classic.png?v=1" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:image" content="https://story-points.danielrose7.workers.dev/og/classic.png?v=1" />
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>" />
 		<!-- Deliberately render-blocking (no defer/module): stamps the theme
 		     before first paint to avoid a Flash of inAccurate coloR Theme.

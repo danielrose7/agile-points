@@ -68,11 +68,20 @@ npm run deploy     # builds, then `wrangler deploy` (needs `wrangler login` once
 ## Themes
 
 17 themes: 🃏 card table, 🚀 space, 🏄 surf, 🎂 birthday, 🪩 nightclub, and a
-full seasonal calendar (🧧 💘 🍀 🌸 🌷 ☀️ 🎆 📚 🍂 🎃 🦃 🎄). New rooms get a
-**random theme** at creation; the host can change it in room settings (synced
+full seasonal calendar (🧧 💘 🍀 🌸 🌷 ☀️ 🎆 📚 🍂 🎃 🦃 🎄). New rooms get the
+**seasonal theme** nearest to today (day-of-year anchors) at creation; the host can change it in room settings (synced
 to everyone, persisted with the room). A theme = a block of `--sp-*` token
 overrides in `src/styles.css` — palette, card backs, confetti colors, plus two
 theme-flavored emoji slots in the reaction tray (`THEME_REACTIONS`).
+
+## Social previews
+
+Sharing `/` or a room URL renders a rich card: the Worker rewrites the SPA
+shell's Open Graph tags per request (room name in the title, the room's theme
+image — seasonal for the home page and unclaimed rooms). The 1200x630 images
+are generated per theme by `scripts/generate-og.sh` (SVG templates rasterized
+with rsvg-convert, palettes parsed from `src/styles.css`) and committed to
+`public/og/`.
 
 ## Roadmap
 

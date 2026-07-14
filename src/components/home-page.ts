@@ -4,6 +4,7 @@ import { generateRoomSlug } from '../slug';
 import { navigate } from '../main';
 import { applyTheme, todaysTheme } from '../theme';
 import { getRecentRooms, type RecentRoom } from '../recents';
+import type { RoomPeek } from '../../shared/types';
 
 class HomePage extends LitElement {
 	static properties = {
@@ -43,7 +44,7 @@ class HomePage extends LitElement {
 		if (changed.has('lostPath') && this.lostSlug) {
 			this.lostRoomExists = null;
 			fetch(`/api/room/${this.lostSlug}/peek`)
-				.then((r) => r.json() as Promise<{ exists: boolean }>)
+				.then((r) => r.json() as Promise<RoomPeek>)
 				.then(({ exists }) => (this.lostRoomExists = exists))
 				.catch(() => (this.lostRoomExists = false));
 		}

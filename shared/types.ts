@@ -61,6 +61,13 @@ export interface RoomStateView {
 	youJoined: boolean;
 }
 
+/** Response of GET /api/room/<slug>/peek — 404 check + social-preview tags. */
+export interface RoomPeek {
+	exists: boolean;
+	name?: string;
+	theme?: ThemeId;
+}
+
 export const REACTION_EMOJI = ['👍', '🔥', '🤔', '😂', '🎉', '👏', '☕', '🐇'] as const;
 
 /** Two theme-flavored tray slots appended to the core reactions. */
