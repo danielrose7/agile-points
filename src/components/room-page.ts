@@ -14,7 +14,7 @@ import {
 	saveRoomCode,
 } from '../identity';
 import { navigate } from '../main';
-import { REACTION_EMOJI, THEME_REACTIONS } from '../../shared/types';
+import { REACTION_EMOJI, REACTION_LABELS, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
 import { applyTheme } from '../theme';
 import { touchRecentRoom } from '../recents';
@@ -123,6 +123,15 @@ class RoomPage extends LitElement {
 		conn.onLocked = () => (this.locked = true);
 		conn.onState = (state) => {
 			const justRevealed = !(this.state?.revealed ?? false) && state.revealed;
+			// Settings changed under you (you're not the host): say so — a
+			// swapped deck or theme is disorienting when it appears unannounced.
+			const prev = this.state;
+			if (prev?.youJoined && state.youJoined) {
+				const meOwner = state.participants.find((p) => p.id === state.you)?.isOwner ?? false;
+				if (!meOwner && JSON.stringify(prev.settings) !== JSON.stringify(state.settings)) {
+					this.fx?.toast('⚙️ The host updated the room settings');
+				}
+			}
 			this.locked = false;
 			// The host learns the code from the server; remember it like
 			// everyone else so their invite links carry it.
@@ -142,7 +151,14 @@ class RoomPage extends LitElement {
 		};
 		conn.onStatus = (status) => (this.status = status);
 		conn.onError = (message) => (this.error = message);
-		conn.onReaction = (emoji, _from, name) => this.fx?.spawnReaction(emoji, name);
+		conn.onReaction = (emoji, _from, name) => {
+			this.fx?.spawnReaction(emoji, name);
+			// First 🐇 anyone sends you gets a one-time decoder ring.
+			if (emoji === '🐇' && !localStorage.getItem('sp-rabbit-explained')) {
+				localStorage.setItem('sp-rabbit-explained', '1');
+				this.fx?.toast('🐇 means “we’re going down a rabbit hole”');
+			}
+		};
 
 		// Reclaim a previous seat in this room without showing the join gate.
 		const savedRole = getSavedRole(this.roomId);
@@ -473,6 +489,11 @@ class RoomPage extends LitElement {
 		.react:focus-visible {
 			outline: 3px solid var(--sp-accent);
 			outline-offset: 2px;
+		}
+		.hint {
+			margin: 12px 0 0;
+			color: var(--sp-muted);
+			font-size: 0.85rem;
 		}
 
 		/* Players */
@@ -1318,10 +1339,13 @@ class RoomPage extends LitElement {
 					<span
 						class="timer ${this.timerMood(s)} ${this.timerWobble ? 'wobble' : ''}"
 						style="font-size:${1 + this.rabbitCount(s) * 0.16}rem"
+						title=${this.rabbitCount(s) > 0
+							? 'Round timer — rabbits pile up the longer this one drags on'
+							: 'Round timer'}
 					>
 						${Array.from(
 							{ length: this.rabbitCount(s) },
-							(_, i) => html`<span class="bun" style="animation-delay:${i * 120}ms">🐇</span>`,
+							(_, i) => html`<span class="bun" aria-hidden="true" style="animation-delay:${i * 120}ms">🐇</span>`,
 						)}
 						${s.revealedAt !== null ? '⏸' : '⏱'} ${this.formatElapsed()}
 					</span>
@@ -1420,6 +1444,11 @@ class RoomPage extends LitElement {
 						)}
 					</tbody>
 				</table>
+				${s.participants.length === 1
+					? html`<p class="hint">
+							Just you so far — share the <strong>invite link</strong> below to deal your team in.
+						</p>`
+					: nothing}
 			</div>
 
 			${s.revealed && voters.length ? this.renderStats(s) : nothing}
@@ -1477,7 +1506,8 @@ class RoomPage extends LitElement {
 					(e) =>
 						html`<button
 							class="react"
-							aria-label=${e === '🐇' ? 'React with 🐇 — we’re going down a rabbit hole' : `React with ${e}`}
+							aria-label=${`React with ${e}${REACTION_LABELS[e] ? ` — ${REACTION_LABELS[e]}` : ''}`}
+							title=${REACTION_LABELS[e] ?? nothing}
 							@click=${() => this.sendReaction(e)}
 						>
 							${e}

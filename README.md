@@ -208,6 +208,15 @@ Remaining from the July 2026 self-critique:
 
 Future ideas (not committed):
 
+- **Translations (i18n)** — the UI is English-only; agile teams aren't. All
+  user-facing strings live in Lit templates today, so the first step is
+  extracting them (likely `@lit/localize`, which fits the zero-runtime-deps
+  grain: XLIFF at build time, no runtime library). Browser-language
+  detection with a manual override in room settings; room content (stories,
+  names) is already user-authored and needs nothing. Also a DHH-style
+  community contribution surface: a locale file is a self-contained,
+  reviewable gift.
+
 - **Invite QR code** — for screenshares and conference-room TVs: a QR of the
   invite link in the invite panel (client-side generation, no service).
   Must auto-include the room code (`?code=…`) when protection is on, so

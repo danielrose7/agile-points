@@ -158,6 +158,54 @@ export const THEME_REACTIONS: Record<ThemeId, [string, string]> = {
 	christmas: ['🎅', '⛄'],
 };
 
+/** Tooltip labels for every reaction: plain Unicode names for the core
+ *  tray, a little more fun for the theme/seasonal slots. */
+export const REACTION_LABELS: Record<string, string> = {
+	'👍': 'thumbs up',
+	'🔥': 'fire',
+	'🤔': 'thinking face',
+	'😂': 'tears of joy',
+	'🎉': 'party popper',
+	'👏': 'clapping hands',
+	'☕': 'hot beverage',
+	'🐇': 'we’re going down a rabbit hole',
+	// theme slots
+	'🎲': 'roll the dice',
+	'♠️': 'ace up the sleeve',
+	'🛸': 'estimate from another planet',
+	'🌟': 'stellar',
+	'🌊': 'gnarly wave incoming',
+	'🤙': 'hang loose',
+	'🎈': 'party balloon',
+	'🎁': 'gift',
+	'💃': 'dance it out',
+	'🕺': 'night moves',
+	'🧧': 'lucky red envelope',
+	'🐉': 'dragon-sized ticket',
+	'💘': 'estimated with love',
+	'🌹': 'a rose for that estimate',
+	'🍀': 'luck of the Irish',
+	'🌈': 'pot of gold at the end',
+	'🐣': 'freshly hatched idea',
+	'🌸': 'in bloom',
+	'🌷': 'tulip',
+	'💐': 'flowers for the team',
+	'🍦': 'cool treat',
+	'😎': 'too cool for points',
+	'🎆': 'fireworks',
+	'🦅': 'freedom',
+	'📚': 'homework assigned',
+	'✏️': 'pencils ready',
+	'🍂': 'falling leaves',
+	'🌰': 'tough nut to crack',
+	'🎃': 'spooky scope',
+	'👻': 'ghost of sprints past',
+	'🦃': 'talking turkey',
+	'🥧': 'easy as pie',
+	'🎅': 'ho ho hopefully a 3',
+	'⛄': 'chill estimate',
+};
+
 /** Everything the server accepts, regardless of the room's current theme. */
 export const ALL_REACTION_EMOJI: string[] = [
 	...new Set([...REACTION_EMOJI, ...Object.values(THEME_REACTIONS).flat()]),
