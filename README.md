@@ -45,12 +45,18 @@ pages in one fetch).
 - `/room/<slug>` lazily creates/opens the room's Durable Object (`idFromName`).
 - Each browser keeps a persistent `userId` in localStorage; the room keeps your
   seat keyed by that id, so **refreshing reclaims your seat** (name, role, vote).
+  The id doubles as the seat credential, so it never leaves the server —
+  broadcasts carry per-room opaque aliases (see CLAUDE.md: identifiers are
+  capabilities).
 - Votes are masked server-side until reveal — other players only get a
-  `hasVoted` flag, never the value.
+  `hasVoted` flag, never the value (the "4/5 in" chip counts flags).
 - Auto-reveal fires when every *connected* voter has voted (configurable).
 - **Leave room** deletes your seat so it stops blocking reveals.
 - The room owner (first joiner) can edit settings: room name, point values
   (label + value pairs, reorderable), and auto-reveal.
+- A singleton stats Durable Object keeps anonymous aggregate counters (votes,
+  rounds, rooms, live presence); the home page shows them once they're worth
+  showing, and `GET /api/stats` serves integers only — never room slugs.
 
 ## Develop
 
@@ -156,6 +162,16 @@ curl https://story-points.danielrose7.workers.dev/api/room/<room>/export
 Connected clients see imports live. A future "estimation session" skill for
 Claude/MCP can sit entirely on this surface without touching app code.
 
+**Why no OAuth or API keys, ever**: the product stance is *no accounts*,
+and auth machinery is accounts by the back door — key issuance, rotation,
+revocation, a dashboard to manage them, and a database of who's who. Worse,
+keys parked in scripts and CI logs leak, and then we'd own the breach story.
+The room slug (plus the optional room code) is the entire credential, scoped
+to exactly one room and shared the same way the room itself is. That's what
+makes the one-click "**use your own agent with our API**" concept work: an
+agent needs zero setup ceremony — no signup, no token exchange — just the
+room URL it was invited with, same as a human.
+
 ## Round history & results
 
 "Next ticket →" after a reveal records the round — story, vote spread, and
@@ -171,40 +187,19 @@ cost nothing forever.
 
 ## Roadmap
 
-Everything from the July 2026 competitive survey shipped: ticket queue +
-export, deck grouping, voting countdown, agreement %, anonymous voting, away
-votes (async-ish estimation), settings tabs, feature toggles for every
-optional feature, room-creation presets, fresh round clock, docs + llms.txt,
-the one-step agent setup (`/agent-setup/prompt.md`), in-room agent prompts
-with tracker CSV import (preview table, ticket links), and opt-in room codes
-(6-char, invite links carry them, API-enforced, rate-limited).
+The July 2026 pushes (competitive survey, room UX refresh, accessibility
+pass, app-first landing, usage stats, open-sourcing) all shipped — git
+history is the changelog. What's left:
 
-Remaining (on hold, July 2026 — the one-step agent prompt is the integration
-for now; revisit when real usage hits friction):
+**On hold** (revisit when real usage hits friction):
 
-1. **Packaged agent integration** — either (a) a `story-points-skills` repo
-   (Claude Code plugin marketplace; an `/estimate-session` skill driving the
-   HTTP API with tracker credentials staying local), and/or (b) a remote MCP
-   endpoint on the Worker (`import_tickets` / `export_session` / `peek_room`
-   tools) for claude.ai and Claude Desktop. Lives outside this repo per the
-   no-integrations rule either way.
-
-**Room UX refresh — shipped July 2026**: two-column desktop layout
-(story/deck/queue left, players/results right — reveal lands beside the
-table, not below the fold), scroll-into-view + `aria-live` on reveal,
-FigJam-style floating reaction pill (always one tap away), and a "4/5 in"
-votes-progress chip that fills as votes land (squash-and-stretch + floating
-+1 per vote — the Josh Comeau heart-button trick, horizontal so the fill
-doesn't strike through the text).
-
-Remaining from the July 2026 self-critique:
-
-1. **Accessibility pass** — voting hand as a radio group, arrow-key deck
-   navigation, ARIA on chips/disclosures (reveal announcement shipped).
-2. **Home page refresh** — app-first landing: hero card untouched above the
-   fold, how-it-works + feature highlights + open-source note below.
-3. Small: empty-room onboarding copy, first-rabbit explainer toast,
-   "host changed settings" toast.
+- **Packaged agent integration** — either (a) a `story-points-skills` repo
+  (Claude Code plugin marketplace; an `/estimate-session` skill driving the
+  HTTP API with tracker credentials staying local), and/or (b) a remote MCP
+  endpoint on the Worker (`import_tickets` / `export_session` / `peek_room`
+  tools) for claude.ai and Claude Desktop. Lives outside this repo per the
+  no-integrations rule either way. The one-step agent prompt is the
+  integration for now.
 
 Future ideas (not committed):
 
@@ -250,10 +245,11 @@ account/API-heavy, against the no-accounts zero-dep grain.
 
 Free and open source under the [MIT license](LICENSE) (© Bloom Interactive
 LLC) — fork it, self-host it, or crib from it. Self-hosting is genuinely
-three commands (clone, `wrangler login`, `npm run deploy`) and fits the
-Cloudflare Workers free plan; the one caveat is that Durable Objects are the
-non-portable piece, so "eject" means "to your own Cloudflare account," not
-to an arbitrary box.
+three commands and fits the Cloudflare Workers free plan — full
+instructions at [/docs/self-host](https://story-points.danielrose7.workers.dev/docs/self-host)
+(also linked as "Self-host (eject)" in the site footer). The one caveat:
+Durable Objects are the non-portable piece, so "eject" means "to your own
+Cloudflare account," not to an arbitrary box.
 
 Running this costs almost nothing, so there's no paywall and never will be.
 If it saved your sprint, you can [sponsor the project](https://github.com/sponsors/danielrose7).

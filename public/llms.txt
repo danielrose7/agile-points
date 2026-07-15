@@ -19,6 +19,7 @@ plan. Built by Daniel Rose (https://gobloom.io) in Silverton, CO.
 - [Compare](https://story-points.danielrose7.workers.dev/docs/compare.md): How Story Points stacks up against PlanningPoker.com, Parabol, Jira plugins, and story-points.app — and when to pick something else
 - [API](https://story-points.danielrose7.workers.dev/docs/api.md): Plain-HTTP import/export — the integration surface for scripts, CLIs, and agents
 - [Agent setup](https://story-points.danielrose7.workers.dev/docs/agent-setup.md): Teach any AI coding agent to drive Story Points in one step
+- [Self-host](https://story-points.danielrose7.workers.dev/docs/self-host.md): Run your own Story Points on the Cloudflare free plan in three commands — the eject hatch is the point
 
 ## API quick reference
 

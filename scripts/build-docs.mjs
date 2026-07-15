@@ -28,7 +28,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://story-points.danielrose7.workers.dev';
 const OUT = path.join(root, 'public');
 // Fixed order — drives the nav, llms.txt sections, and llms-full.txt.
-const PAGES = ['index', 'getting-started', 'features', 'themes', 'compare', 'api', 'agent-setup'];
+const PAGES = ['index', 'getting-started', 'features', 'themes', 'compare', 'api', 'agent-setup', 'self-host'];
 
 fs.mkdirSync(path.join(OUT, 'docs'), { recursive: true });
 

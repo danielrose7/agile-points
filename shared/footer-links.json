@@ -23,9 +23,9 @@
 			"title": "Project",
 			"links": [
 				{ "label": "GitHub", "href": "https://github.com/danielrose7/story-points" },
+				{ "label": "Self-host (eject)", "href": "/docs/self-host" },
 				{ "label": "License (MIT)", "href": "https://github.com/danielrose7/story-points/blob/main/LICENSE" },
-				{ "label": "Sponsor", "href": "https://github.com/sponsors/danielrose7" },
-				{ "label": "gobloom.io", "href": "https://gobloom.io" }
+				{ "label": "Sponsor", "href": "https://github.com/sponsors/danielrose7" }
 			]
 		}
 	],

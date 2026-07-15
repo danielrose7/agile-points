@@ -462,8 +462,9 @@ class HomePage extends LitElement {
 					</a>
 				</div>
 				<p class="oss">
-					MIT-licensed and self-hostable in three commands — no paywall, no
-					catch. <a href="https://github.com/danielrose7/story-points">GitHub</a> ·
+					MIT-licensed and <a href="/docs/self-host">self-hostable in three commands</a>
+					— no paywall, no catch.
+					<a href="https://github.com/danielrose7/story-points">GitHub</a> ·
 					<a href="/docs/compare">How it compares</a>
 				</p>
 			</div>
