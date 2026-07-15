@@ -10,7 +10,7 @@ export default {
 	'Create a room': 'Créer un salon',
 	'starting from': 'à partir de',
 	'or join an existing one': 'ou rejoignez un salon existant',
-	'room name, e.g. brave-gold-otter': 'nom du salon, ex. brave-gold-otter',
+	'room name, e.g. brave-gold-otter': 'nom du salon, ex. brave-or-loutre',
 	'Join': 'Rejoindre',
 	'Jump back in': 'Reprendre',
 	'1 team estimating right now': '1 équipe estime en ce moment',

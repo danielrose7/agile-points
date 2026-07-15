@@ -10,7 +10,7 @@ export default {
 	'Create a room': 'Raum erstellen',
 	'starting from': 'Vorlage:',
 	'or join an existing one': 'oder einem Raum beitreten',
-	'room name, e.g. brave-gold-otter': 'Raumname, z. B. brave-gold-otter',
+	'room name, e.g. brave-gold-otter': 'Raumname, z. B. tapfer-gold-otter',
 	'Join': 'Beitreten',
 	'Jump back in': 'Weitermachen',
 	'1 team estimating right now': '1 Team schätzt gerade',

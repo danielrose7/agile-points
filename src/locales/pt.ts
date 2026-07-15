@@ -10,7 +10,7 @@ export default {
 	'Create a room': 'Criar uma sala',
 	'starting from': 'a partir de',
 	'or join an existing one': 'ou entre em uma sala existente',
-	'room name, e.g. brave-gold-otter': 'nome da sala, ex. brave-gold-otter',
+	'room name, e.g. brave-gold-otter': 'nome da sala, ex. bravo-ouro-lontra',
 	'Join': 'Entrar',
 	'Jump back in': 'Voltar para',
 	'1 team estimating right now': '1 time estimando agora',

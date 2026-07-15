@@ -10,7 +10,7 @@ export default {
 	'Create a room': 'ルームを作成',
 	'starting from': 'テンプレート:',
 	'or join an existing one': 'または既存のルームに参加',
-	'room name, e.g. brave-gold-otter': 'ルーム名（例: brave-gold-otter）',
+	'room name, e.g. brave-gold-otter': 'ルーム名（例: genki-kin-usagi）',
 	'Join': '参加',
 	'Jump back in': '再開する',
 	'1 team estimating right now': '今 1 チームが見積もり中',
