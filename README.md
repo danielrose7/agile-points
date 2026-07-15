@@ -187,6 +187,13 @@ for now; revisit when real usage hits friction):
 
 Future ideas (not committed):
 
+- **A real domain** — `workers.dev` reads as a hobby project to humans and
+  ranking heuristics alike. A proper domain (storypoints.dev-ish) is the
+  cheapest single credibility signal for the agent-era discoverability work
+  (schema, robots.txt, sitemap, llms.txt all shipped July 2026) and makes
+  invite links nicer. Requires updating the baked absolute URLs: OG tags,
+  docs/llms.txt generator SITE constant, agent prompt.md, and JSON-LD.
+
 - **Vote ahead on the queue** — the Story-Points-shaped async model
   (researched July 2026 vs Async Poker / SprintPoker / Parabol): voters flip
   through "Up next" items and bank votes early; per-item "3 of 5 have voted"
