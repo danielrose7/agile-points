@@ -15,19 +15,33 @@ may have changed since.*
 
 ## At a glance
 
-| | 🃏 Story Points | PlanningPoker.com | Parabol | Jira plugins | story-points.app |
-| --- | --- | --- | --- | --- | --- |
-| Price | Free, no tiers | Free tier + paid plans | Free tier + paid plans | Per-user via Atlassian | £4.99/mo after trial |
-| Accounts required | **None** | Facilitator signs up | Everyone signs up | Jira login | Sign-up + billing |
-| Player limit | None | Capped on free tier | Tier-dependent | Jira seats | 12 |
-| Persistent rooms | ✔ same URL every sprint | ✔ with account | ✔ with account | ✔ inside Jira | ✔ with account |
-| Hidden votes + auto-reveal | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Custom decks & grouping | ✔ | Partial | Partial | Partial | Scales only |
-| Ticket queue + CSV import | ✔ Linear/Jira CSV, previewed | Jira sync (paid) | ✔ | Native | ✘ |
-| Export results | ✔ Markdown, CSV, JSON API | ✔ (paid tiers) | ✔ | Native | Paid tier |
-| Plain-HTTP API + llms.txt | ✔ | ✘ | API (paid) | Jira API | ✘ |
-| Open source / self-host | ✔ MIT, 3 commands | ✘ | ✔ AGPL | ✘ | ✘ |
-| Ads / data monetization | None | Ads on free tier | None | None | None claimed |
+| | 🃏 Story Points | Pointing Poker | PlanningPoker.com | Parabol | Jira plugins | story-points.app |
+| --- | --- | --- | --- | --- | --- | --- |
+| Price | Free, no tiers | Free (donations + light ads) | Free tier + paid plans | Free tier + paid plans | Per-user via Atlassian | £4.99/mo after trial |
+| Accounts required | **None** | **None** | Facilitator signs up | Everyone signs up | Jira login | Sign-up + billing |
+| Player limit | None | None stated | Capped on free tier | Tier-dependent | Jira seats | 12 |
+| Persistent rooms | ✔ same URL every sprint | ✘ ephemeral sessions | ✔ with account | ✔ with account | ✔ inside Jira | ✔ with account |
+| Hidden votes + auto-reveal | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Custom decks & grouping | ✔ | Custom values | Partial | Partial | Partial | Scales only |
+| Ticket queue + CSV import | ✔ Linear/Jira CSV, previewed | ✘ | Jira sync (paid) | ✔ | Native | ✘ |
+| Export results | ✔ Markdown, CSV, JSON API | ✘ | ✔ (paid tiers) | ✔ | Native | Paid tier |
+| Plain-HTTP API + llms.txt | ✔ | ✘ | ✘ | API (paid) | Jira API | ✘ |
+| Open source / self-host | ✔ MIT, 3 commands | ✘ | ✘ | ✔ AGPL | ✘ | ✘ |
+| Ads / data monetization | None | Light ads + donations | Ads on free tier | None | None | None claimed |
+
+## Pointing Poker
+
+The one closest in spirit to Story Points — free, no signup, instant
+session links, and with tens of millions of votes cast it's earned its
+place as many teams' default. It runs on donations plus light ads. The
+trade-offs are a dated UI and ephemeral sessions: there's no standing room URL that
+keeps your deck, settings, and history between sprints, and no
+import/export surface — the session ends and the numbers leave with it.
+It also has a retrospective mode, which Story Points doesn't. **Choose it
+if** you want retros in the same tool or your team already lives there.
+If you're coming from Pointing Poker, Story Points is the same
+no-accounts idea plus persistence, tracker CSV import, exports, themes,
+and open source — minus the ads.
 
 ## PlanningPoker.com
 
