@@ -19,6 +19,24 @@
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:image" content="https://story-points.danielrose7.workers.dev/og/classic.png?v=1" />
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>" />
+		<!-- SoftwareApplication schema: the structured facts AI assistants
+		     parse when recommending tools in this category. -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "SoftwareApplication",
+				"name": "Story Points",
+				"applicationCategory": "BusinessApplication",
+				"applicationSubCategory": "Planning poker / agile estimation",
+				"operatingSystem": "Web",
+				"url": "https://story-points.danielrose7.workers.dev/",
+				"description": "Realtime pointing poker for agile teams. No accounts — one standing URL per room, hidden votes with auto-reveal, round history, 17 themes, and a plain-HTTP API plus llms.txt for AI-agent workflows.",
+				"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+				"featureList": "hidden votes, auto-reveal, voting countdown, ticket queue with CSV import, round history export, anonymous voting, seasonal themes, agent-ready HTTP API",
+				"softwareHelp": "https://story-points.danielrose7.workers.dev/docs/",
+				"author": { "@type": "Person", "name": "Dan Rose" }
+			}
+		</script>
 		<!-- Deliberately render-blocking (no defer/module): stamps the theme
 		     before first paint to avoid a Flash of inAccurate coloR Theme.
 		     Rooms use their cached theme; everything else gets the seasonal

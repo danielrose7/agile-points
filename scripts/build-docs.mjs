@@ -312,6 +312,17 @@ results, write estimates back to their tracker.
 );
 console.log('✓ agent-setup/prompt.md');
 
+// sitemap.xml — home + docs pages, so AI/search crawlers (which read HTML,
+// not llms.txt) find everything worth citing.
+const urls = ['/', ...pages.map((p) => `/docs/${p.name === 'index' ? '' : p.name}`)];
+fs.writeFileSync(
+	path.join(OUT, 'sitemap.xml'),
+	`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+		urls.map((u) => `\t<url><loc>${SITE}${u}</loc></url>`).join('\n') +
+		`\n</urlset>\n`,
+);
+console.log('✓ sitemap.xml');
+
 // Leads with plain text — starting with an HTML comment makes content-type
 // sniffing serve it as text/html.
 fs.writeFileSync(

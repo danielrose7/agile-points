@@ -1,0 +1,18 @@
+# Story Points — everyone welcome, agents especially.
+# Agent-native surfaces: /llms.txt, /llms-full.txt, /agent-setup/prompt.md
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://story-points.danielrose7.workers.dev/sitemap.xml
