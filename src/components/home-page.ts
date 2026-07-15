@@ -79,9 +79,9 @@ class HomePage extends LitElement {
 	static styles = [
 		baseStyles,
 		css`
-		/* Standard page flow: hero vertically centered in the remaining
-		   viewport, footer resting at the bottom (pushed further only by
-		   content growth — recents, lost-room panel). */
+		/* App-first landing: the hero owns the whole first viewport (the
+		   create/join card IS the product); how-it-works, features, and the
+		   open-source note exist only for whoever scrolls. */
 		:host {
 			display: flex;
 			flex-direction: column;
@@ -90,8 +90,111 @@ class HomePage extends LitElement {
 			min-height: 100dvh;
 			padding: 24px 24px 16px;
 		}
-		.stack {
-			margin: auto 0;
+		.hero {
+			min-height: calc(100dvh - 40px);
+			display: grid;
+			place-content: center;
+			justify-items: center;
+			gap: 18px;
+			width: 100%;
+		}
+		.trust {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 6px 8px;
+			font-size: 0.8rem;
+			color: var(--sp-on-bg);
+			opacity: 0.85;
+		}
+		.trust span {
+			padding: 4px 12px;
+			border-radius: 999px;
+			border: 1px solid color-mix(in srgb, var(--sp-on-bg) 30%, transparent);
+		}
+		.below {
+			width: 100%;
+			max-width: 820px;
+			color: var(--sp-on-bg);
+			display: grid;
+			gap: 28px;
+			padding: 40px 0 8px;
+		}
+		.below h2 {
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.12em;
+			opacity: 0.65;
+			margin: 0 0 12px;
+			text-align: center;
+		}
+		.steps {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 10px 28px;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			text-align: center;
+		}
+		.steps li {
+			max-width: 200px;
+		}
+		.step-num {
+			display: inline-grid;
+			place-items: center;
+			width: 26px;
+			height: 26px;
+			border-radius: 50%;
+			background: var(--sp-accent);
+			color: var(--sp-accent-text);
+			font-weight: 800;
+			font-size: 0.85rem;
+			margin-bottom: 6px;
+		}
+		.steps .how {
+			opacity: 0.8;
+			font-size: 0.88rem;
+			line-height: 1.4;
+		}
+		.feats {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 12px;
+		}
+		.feat {
+			display: block;
+			padding: 16px 18px;
+			border-radius: 12px;
+			background: color-mix(in srgb, var(--sp-surface) 10%, transparent);
+			border: 1px solid color-mix(in srgb, var(--sp-on-bg) 18%, transparent);
+			color: inherit;
+			text-decoration: none;
+			line-height: 1.45;
+			font-size: 0.9rem;
+		}
+		.feat:hover {
+			background: color-mix(in srgb, var(--sp-surface) 18%, transparent);
+			border-color: color-mix(in srgb, var(--sp-on-bg) 32%, transparent);
+		}
+		.feat strong {
+			display: block;
+			margin-bottom: 4px;
+		}
+		.feat .more {
+			opacity: 0.7;
+			font-size: 0.82rem;
+		}
+		.oss {
+			text-align: center;
+			font-size: 0.9rem;
+			opacity: 0.85;
+			line-height: 1.5;
+			margin: 0;
+		}
+		.oss a {
+			color: inherit;
 		}
 		points-footer {
 			margin-top: 40px;
@@ -283,6 +386,7 @@ class HomePage extends LitElement {
 
 	render() {
 		return html`
+			<div class="hero">
 			<div class="stack">
 				${this.lostPath ? this.renderLost() : ''}
 				<div class="panel">
@@ -311,6 +415,57 @@ class HomePage extends LitElement {
 				${this.renderStats()}
 				</div>
 				${this.recents.length ? this.renderRecents() : ''}
+			</div>
+			<div class="trust">
+				<span>Free forever</span>
+				<span>Open source (MIT)</span>
+				<span>No accounts</span>
+			</div>
+			</div>
+
+			<div class="below">
+				<div>
+					<h2>How it works</h2>
+					<ol class="steps">
+						<li>
+							<span class="step-num">1</span>
+							<div class="how">Create a room — or claim any URL you like</div>
+						</li>
+						<li>
+							<span class="step-num">2</span>
+							<div class="how">Share the link; the URL is the invite</div>
+						</li>
+						<li>
+							<span class="step-num">3</span>
+							<div class="how">Vote in secret, reveal together, discuss</div>
+						</li>
+					</ol>
+				</div>
+				<div class="feats">
+					<a class="feat" href="/docs/api">
+						<strong>🤖 Agent-ready</strong>
+						Import backlogs and export results over a plain-HTTP API; llms.txt
+						and a one-step setup prompt for AI agents.
+						<div class="more">API docs →</div>
+					</a>
+					<a class="feat" href="/docs/themes">
+						<strong>🎨 17 themes</strong>
+						Card table to spaceship, plus a full seasonal calendar — new rooms
+						dress for the date.
+						<div class="more">Browse themes →</div>
+					</a>
+					<a class="feat" href="/docs/features">
+						<strong>📜 History &amp; export</strong>
+						Every round recorded; copy out as Markdown or CSV, or pull JSON
+						from the API.
+						<div class="more">All features →</div>
+					</a>
+				</div>
+				<p class="oss">
+					MIT-licensed and self-hostable in three commands — no paywall, no
+					catch. <a href="https://github.com/danielrose7/story-points">GitHub</a> ·
+					<a href="/docs/compare">How it compares</a>
+				</p>
 			</div>
 			<points-footer></points-footer>
 		`;
