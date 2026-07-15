@@ -96,10 +96,41 @@ function sanitizeQueue(items: unknown): string[] {
 		.slice(0, MAX_QUEUE_ITEMS);
 }
 
+/** FNV-1a over two passes → 16 hex chars. Not cryptographic — userIds are
+ *  high-entropy UUIDs; this only needs to be stable and collision-safe at
+ *  room size. */
+function aliasHash(input: string): string {
+	let h1 = 0x811c9dc5;
+	let h2 = 0xcbf29ce4;
+	for (let i = 0; i < input.length; i++) {
+		h1 = Math.imul(h1 ^ input.charCodeAt(i), 0x01000193) >>> 0;
+		h2 = Math.imul(h2 ^ input.charCodeAt(input.length - 1 - i), 0x01000193) >>> 0;
+	}
+	return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+}
+
 export class Room extends DurableObject<Env> {
 	private room: PersistedRoom | null = null;
 	/** true until the room's first save — creation presets apply only then */
 	private freshRoom = false;
+
+	/**
+	 * Per-room opaque alias for a userId. Real ids never leave the server:
+	 * the userId doubles as the seat credential (?u= reclaims your seat in
+	 * every room), so broadcasting it would let any roommate impersonate
+	 * you anywhere. Deterministic, so seats stay stable across sessions.
+	 */
+	private aliasFor(room: PersistedRoom, userId: string): string {
+		return aliasHash(`${room.slug ?? ''}:${userId}`);
+	}
+
+	/** Reverse an alias back to the real participant id (server-side only). */
+	private idForAlias(room: PersistedRoom, alias: string): string | null {
+		for (const id of Object.keys(room.participants)) {
+			if (this.aliasFor(room, id) === alias) return id;
+		}
+		return null;
+	}
 	/** shared bad-guess counter for unlock messages and API code checks */
 	private codeFails = 0;
 	private codeLockedUntil = 0;
@@ -542,7 +573,12 @@ export class Room extends DurableObject<Env> {
 				if (!sender) return;
 				if (!ALL_REACTION_EMOJI.includes(msg.emoji)) return;
 				// Ephemeral: fan out and forget — no storage write, no state broadcast.
-				const payload: ServerMessage = { type: 'reaction', emoji: msg.emoji, from: userId, name: sender.name };
+				const payload: ServerMessage = {
+					type: 'reaction',
+					emoji: msg.emoji,
+					from: this.aliasFor(room, userId),
+					name: sender.name,
+				};
 				for (const socket of this.ctx.getWebSockets()) this.send(socket, payload);
 				return;
 			}
@@ -553,8 +589,9 @@ export class Room extends DurableObject<Env> {
 			}
 			case 'transferHost': {
 				if (room.ownerId !== userId) return this.sendError(ws, 'Only the host can hand off the host role');
-				const to = String(msg.to ?? '');
-				if (!room.participants[to]) return;
+				// Clients only ever see aliases — map back to the real id here.
+				const to = this.idForAlias(room, String(msg.to ?? ''));
+				if (!to || !room.participants[to]) return;
 				// An explicit hand-off moves the reclaim rights too.
 				room.ownerId = to;
 				room.founderId = to;
@@ -694,7 +731,8 @@ export class Room extends DurableObject<Env> {
 				// not — except your own, which you already know.
 				const visible = id === userId || (room.revealed && room.settings.anonymousVotes !== true);
 				return {
-					id,
+					// Aliased: the real id is the seat credential (see aliasFor).
+					id: this.aliasFor(room, id),
 					name: p.name,
 					role: p.role,
 					hasVoted: vote !== undefined,
@@ -711,7 +749,7 @@ export class Room extends DurableObject<Env> {
 			revealedAt: room.revealedAt ?? null,
 			roundStartedAt: room.roundStartedAt,
 			participants,
-			you: userId,
+			you: this.aliasFor(room, userId),
 			youJoined: room.participants[userId] !== undefined && connected.has(userId),
 			// The host sees the code (to share it); nobody else does.
 			accessCode: userId === room.ownerId && room.accessCode ? room.accessCode : undefined,
