@@ -238,7 +238,10 @@ ${guides}
 
 - POST ${SITE}/api/room/<room>/queue — import stories (text lines or JSON {"items":[…]}; ?mode=replace)
 - GET ${SITE}/api/room/<room>/export — session results as JSON (?format=csv for CSV)
-- GET ${SITE}/api/room/<room>/peek — {"exists": bool, "name"?, "theme"?}
+- GET ${SITE}/api/room/<room>/peek — {"exists": bool, "locked"?, "name"?, "theme"?}
+- Protected rooms (opt-in) return 401 from queue/export: send the room's
+  6-char code as ?code= or an X-Room-Code header — it's in the invite link.
+  Ask the user for it; never guess (10 misses = 15-minute lockout).
 
 ## Optional
 
