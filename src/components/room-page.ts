@@ -13,7 +13,8 @@ import {
 	saveRole,
 	saveRoomCode,
 } from '../identity';
-import { navigate } from '../main';
+import { navigate } from '../router';
+import { t, tn, fmtNum, timeAgo } from '../i18n';
 import { REACTION_EMOJI, REACTION_LABELS, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
 import { applyTheme } from '../theme';
@@ -129,7 +130,7 @@ class RoomPage extends LitElement {
 			if (prev?.youJoined && state.youJoined) {
 				const meOwner = state.participants.find((p) => p.id === state.you)?.isOwner ?? false;
 				if (!meOwner && JSON.stringify(prev.settings) !== JSON.stringify(state.settings)) {
-					this.fx?.toast('⚙️ The host updated the room settings');
+					this.fx?.toast(t('⚙️ The host updated the room settings'));
 				}
 			}
 			this.locked = false;
@@ -156,7 +157,7 @@ class RoomPage extends LitElement {
 			// First 🐇 anyone sends you gets a one-time decoder ring.
 			if (emoji === '🐇' && !localStorage.getItem('sp-rabbit-explained')) {
 				localStorage.setItem('sp-rabbit-explained', '1');
-				this.fx?.toast('🐇 means “we’re going down a rabbit hole”');
+				this.fx?.toast(t('🐇 means “we’re going down a rabbit hole”'));
 			}
 		};
 
@@ -189,7 +190,7 @@ class RoomPage extends LitElement {
 					else chime.rabbit();
 				}
 				if (crossed15) {
-					this.fx?.toast('⏳ 15 minutes on this one — split the ticket, park it, or timebox 5 more?');
+					this.fx?.toast(t('⏳ 15 minutes on this one — split the ticket, park it, or timebox 5 more?'));
 				}
 				// Each new rabbit arrives with a size-up wobble.
 				if (stage >= 2) {
@@ -1133,7 +1134,7 @@ class RoomPage extends LitElement {
 		// readers via the aria-live region.
 		if (revealed && !this.wasRevealed) {
 			const n = s?.voteCounts.reduce((sum, v) => sum + v.count, 0) ?? 0;
-			this.revealAnnouncement = `Votes revealed — ${n} ${n === 1 ? 'vote' : 'votes'}`;
+			this.revealAnnouncement = tn(n, 'Votes revealed — 1 vote', 'Votes revealed — %1 votes');
 			const el = this.renderRoot.querySelector('.results-panel');
 			if (el) {
 				const rect = el.getBoundingClientRect();
@@ -1164,7 +1165,7 @@ class RoomPage extends LitElement {
 					${this.statusLabel()}
 					<button
 						class="mute"
-						title=${this.muted ? 'Unmute timer sounds (just for you)' : 'Mute timer sounds (just for you)'}
+						title=${this.muted ? t('Unmute timer sounds (just for you)') : t('Mute timer sounds (just for you)')}
 						@click=${this.toggleMute}
 					>
 						${this.muted ? '🔇' : this.volume > 0.5 ? '🔊' : '🔉'}
@@ -1176,7 +1177,7 @@ class RoomPage extends LitElement {
 								min="0.05"
 								max="1"
 								step="0.05"
-								title="Chime volume (just for you)"
+								title=${t('Chime volume (just for you)')}
 								.value=${String(this.volume)}
 								@input=${(e: InputEvent) => {
 									this.volume = Number((e.target as HTMLInputElement).value);
@@ -1196,11 +1197,11 @@ class RoomPage extends LitElement {
 	private statusLabel() {
 		switch (this.status) {
 			case 'open':
-				return '● live';
+				return `● ${t('live')}`;
 			case 'reconnecting':
-				return '◌ reconnecting…';
+				return `◌ ${t('reconnecting…')}`;
 			case 'connecting':
-				return '◌ connecting…';
+				return `◌ ${t('connecting…')}`;
 			default:
 				return '';
 		}
@@ -1209,8 +1210,8 @@ class RoomPage extends LitElement {
 	private renderCodeGate() {
 		return html`
 			<div class="panel gate">
-				<h2>🔒 This room has a code</h2>
-				<p class="gate-hint">Ask the host, or use their invite link — it carries the code.</p>
+				<h2>🔒 ${t('This room has a code')}</h2>
+				<p class="gate-hint">${t('Ask the host, or use their invite link — it carries the code.')}</p>
 				<input
 					class="code-input"
 					placeholder="ABC123"
@@ -1222,7 +1223,7 @@ class RoomPage extends LitElement {
 					@keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.submitCode()}
 				/>
 				<button class="join-btn" ?disabled=${this.codeDraft.trim().length < 6} @click=${this.submitCode}>
-					Enter room
+					${t('Enter room')}
 				</button>
 			</div>
 		`;
@@ -1251,31 +1252,31 @@ class RoomPage extends LitElement {
 	private renderGate() {
 		return html`
 			<div class="panel gate">
-				<h2>Take a seat</h2>
+				<h2>${t('Take a seat')}</h2>
 				<input
-					placeholder="Your name"
-					aria-label="Your name"
+					placeholder=${t('Your name')}
+					aria-label=${t('Your name')}
 					.value=${this.nameDraft}
 					@input=${(e: InputEvent) => (this.nameDraft = (e.target as HTMLInputElement).value)}
 					@keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.join()}
 				/>
-				<div class="roles" role="group" aria-label="Join as">
+				<div class="roles" role="group" aria-label=${t('Join as')}>
 					<button
 						class=${this.roleDraft === 'voter' ? 'active' : ''}
 						aria-pressed=${this.roleDraft === 'voter' ? 'true' : 'false'}
 						@click=${() => (this.roleDraft = 'voter')}
 					>
-						🎴 Voter
+						🎴 ${t('Voter')}
 					</button>
 					<button
 						class=${this.roleDraft === 'observer' ? 'active' : ''}
 						aria-pressed=${this.roleDraft === 'observer' ? 'true' : 'false'}
 						@click=${() => (this.roleDraft = 'observer')}
 					>
-						👀 Observer
+						👀 ${t('Observer')}
 					</button>
 				</div>
-				<button class="join-btn" @click=${this.join}>Join room</button>
+				<button class="join-btn" @click=${this.join}>${t('Join room')}</button>
 			</div>
 		`;
 	}
@@ -1291,12 +1292,12 @@ class RoomPage extends LitElement {
 			<div class="col">
 			<div class="panel">
 				<label class="field">
-					Story description
+					${t('Story description')}
 					${this.storyTicketLink(s.story)}
 				</label>
 				<textarea
 					class="story"
-					placeholder="What are we estimating?"
+					placeholder=${t('What are we estimating?')}
 					.value=${this.storyDraft}
 					@focus=${() => (this.storyEditing = true)}
 					@blur=${this.onStoryBlur}
@@ -1306,19 +1307,19 @@ class RoomPage extends LitElement {
 					${s.revealed
 						? html`
 								<button class="btn primary" title=${s.queue?.[0] ?? ''} @click=${this.nextTicket}>
-									Next ticket →
+									${t('Next ticket')} →
 								</button>
-								<button class="btn" @click=${this.revote}>Re-vote</button>
+								<button class="btn" @click=${this.revote}>${t('Re-vote')}</button>
 							`
 						: html`
-								<button class="btn primary" @click=${() => this.conn?.send({ type: 'reveal' })}>Show votes</button>
-								<button class="btn" @click=${this.revote}>Re-vote</button>
+								<button class="btn primary" @click=${() => this.conn?.send({ type: 'reveal' })}>${t('Show votes')}</button>
+								<button class="btn" @click=${this.revote}>${t('Re-vote')}</button>
 								${s.settings.countdown !== false
 									? s.countdownEndsAt !== null
 										? html`
 												<button
 													class="btn countdown running"
-													title="Cancel the countdown"
+													title=${t('Cancel the countdown')}
 													@click=${() => this.conn?.send({ type: 'countdown', action: 'cancel' })}
 												>
 													⏳ ${this.countdownRemaining(s)}s ✕
@@ -1327,7 +1328,7 @@ class RoomPage extends LitElement {
 										: html`
 												<button
 													class="btn countdown"
-													title="Start a countdown — votes reveal automatically at zero"
+													title=${t('Start a countdown — votes reveal automatically at zero')}
 													@click=${() => this.conn?.send({ type: 'countdown', action: 'start' })}
 												>
 													⏳ ${s.settings.countdownSeconds ?? 60}s
@@ -1340,8 +1341,8 @@ class RoomPage extends LitElement {
 						class="timer ${this.timerMood(s)} ${this.timerWobble ? 'wobble' : ''}"
 						style="font-size:${1 + this.rabbitCount(s) * 0.16}rem"
 						title=${this.rabbitCount(s) > 0
-							? 'Round timer — rabbits pile up the longer this one drags on'
-							: 'Round timer'}
+							? t('Round timer — rabbits pile up the longer this one drags on')
+							: t('Round timer')}
 					>
 						${Array.from(
 							{ length: this.rabbitCount(s) },
@@ -1355,7 +1356,7 @@ class RoomPage extends LitElement {
 			${me?.role === 'voter'
 				? html`
 						<div class="panel">
-							<label class="field" id="deck-label">Your vote</label>
+							<label class="field" id="deck-label">${t('Your vote')}</label>
 							<div role="radiogroup" aria-labelledby="deck-label" @keydown=${this.onDeckKeydown}>
 								${this.deckClusters(s).map(([group, cards]) => {
 									// Roving tabindex: the selected card is the tab stop; with
@@ -1394,12 +1395,12 @@ class RoomPage extends LitElement {
 
 			<div class="col">
 			<div class="panel">
-				<label class="field">Players ${this.renderVotesIn(s)}</label>
+				<label class="field">${t('Players')} ${this.renderVotesIn(s)}</label>
 				<table>
 					<thead>
 						<tr>
-							<th>Player</th>
-							<th>Points</th>
+							<th>${t('Player')}</th>
+							<th>${t('Points')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -1410,17 +1411,17 @@ class RoomPage extends LitElement {
 								<tr class="seat ${p.away ? 'away' : ''}">
 									<td>
 										${p.name}
-										${p.away ? html`<span class="tag">💤 away</span>` : nothing}
-										${p.isOwner ? html`<span class="tag">host</span>` : nothing}
-										${p.role === 'observer' ? html`<span class="tag">observer</span>` : nothing}
-										${p.id === s.you ? html`<span class="tag">you</span>` : nothing}
+										${p.away ? html`<span class="tag">💤 ${t('away')}</span>` : nothing}
+										${p.isOwner ? html`<span class="tag">${t('host')}</span>` : nothing}
+										${p.role === 'observer' ? html`<span class="tag">${t('observer')}</span>` : nothing}
+										${p.id === s.you ? html`<span class="tag">${t('you')}</span>` : nothing}
 										${me?.isOwner && p.id !== s.you
 											? html`<button
 													class="make-host"
-													title="Make ${p.name} the host"
+													title=${t('Make %1 the host', p.name)}
 													@click=${() => this.conn?.send({ type: 'transferHost', to: p.id })}
 												>
-													👑 make host
+													👑 ${t('make host')}
 												</button>`
 											: nothing}
 									</td>
@@ -1435,9 +1436,9 @@ class RoomPage extends LitElement {
 													>`
 												: p.hasVoted
 													? s.revealed
-														? html`<span class="vote-chip hidden-vote" role="img" aria-label="voted (anonymous)" title="Voted (anonymous)">✓</span>`
-														: html`<span class="vote-chip hidden-vote" role="img" aria-label="voted — hidden until reveal">?</span>`
-													: html`<span class="vote-chip waiting" role="img" aria-label="hasn’t voted yet">…</span>`}
+														? html`<span class="vote-chip hidden-vote" role="img" aria-label=${t('voted (anonymous)')} title=${t('voted (anonymous)')}>✓</span>`
+														: html`<span class="vote-chip hidden-vote" role="img" aria-label=${t('voted — hidden until reveal')}>?</span>`
+													: html`<span class="vote-chip waiting" role="img" aria-label=${t('hasn’t voted yet')}>…</span>`}
 									</td>
 								</tr>
 							`,
@@ -1445,9 +1446,7 @@ class RoomPage extends LitElement {
 					</tbody>
 				</table>
 				${s.participants.length === 1
-					? html`<p class="hint">
-							Just you so far — share the <strong>invite link</strong> below to deal your team in.
-						</p>`
+					? html`<p class="hint">${t('Just you so far — share the invite link below to deal your team in.')}</p>`
 					: nothing}
 			</div>
 
@@ -1458,17 +1457,17 @@ class RoomPage extends LitElement {
 
 			<div class="panel">
 				<label class="field">
-					Invite your team
+					${t('Invite your team')}
 					${s.requiresCode
-						? html`<span class="code-chip" title="This room requires a code; the invite link carries it">
-								🔒 code ${s.accessCode ?? getRoomCode(this.roomId) ?? '••••••'}
+						? html`<span class="code-chip" title=${t('This room requires a code; the invite link carries it')}>
+								🔒 ${t('code')} ${s.accessCode ?? getRoomCode(this.roomId) ?? '••••••'}
 							</span>`
 						: nothing}
 				</label>
 				<div class="invite">
 					<code>${this.inviteUrl(s)}</code>
 					<button class="btn ${this.copied ? 'copied' : ''}" @click=${this.copyLink}>
-						${this.copied ? 'Copied ✓' : 'Copy link'}
+						${this.copied ? t('Copied ✓') : t('Copy link')}
 					</button>
 				</div>
 			</div>
@@ -1476,14 +1475,14 @@ class RoomPage extends LitElement {
 			<div class="toolbar">
 				${isOwner
 					? html`<button class="btn" @click=${() => (this.showSettings = !this.showSettings)}>
-							⚙️ Room settings
+							⚙️ ${t('Room settings')}
 						</button>`
 					: nothing}
 				<button class="btn" @click=${this.switchRole}>
-					${me?.role === 'voter' ? 'Switch to observer' : 'Switch to voter'}
+					${me?.role === 'voter' ? t('Switch to observer') : t('Switch to voter')}
 				</button>
 				<span class="spacer"></span>
-				<button class="btn quiet" style="color:var(--sp-danger-soft)" @click=${this.leave}>Leave room</button>
+				<button class="btn quiet" style="color:var(--sp-danger-soft)" @click=${this.leave}>${t('Leave room')}</button>
 			</div>
 
 			${this.showSettings && isOwner
@@ -1501,13 +1500,13 @@ class RoomPage extends LitElement {
 					></points-settings>`
 				: nothing}
 
-			<div class="reactions" role="toolbar" aria-label="Reactions" title="React — 🐇 = we're going down a rabbit hole">
+			<div class="reactions" role="toolbar" aria-label=${t('Reactions')} title=${t('React — 🐇 = we’re going down a rabbit hole')}>
 				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.theme] ?? [])].map(
 					(e) =>
 						html`<button
 							class="react"
-							aria-label=${`React with ${e}${REACTION_LABELS[e] ? ` — ${REACTION_LABELS[e]}` : ''}`}
-							title=${REACTION_LABELS[e] ?? nothing}
+							aria-label=${`${t('React with')} ${e}${REACTION_LABELS[e] ? ` — ${t(REACTION_LABELS[e])}` : ''}`}
+							title=${REACTION_LABELS[e] ? t(REACTION_LABELS[e]) : nothing}
 							@click=${() => this.sendReaction(e)}
 						>
 							${e}
@@ -1527,7 +1526,7 @@ class RoomPage extends LitElement {
 		return html`
 			<span class="votes-in ${this.votePop ? 'pop' : ''} ${done === total ? 'full' : ''}" style="--fill:${(done / total) * 100}%">
 				<span class="votes-in-fill"></span>
-				<span class="votes-in-text">${done}/${total} in</span>
+				<span class="votes-in-text">${t('%1/%2 in', done, total)}</span>
 				${this.votePop ? html`<span class="plus-one">+1</span>` : nothing}
 			</span>
 		`;
@@ -1546,25 +1545,25 @@ class RoomPage extends LitElement {
 		const agreement = votes.length > 1 ? Math.round((Math.max(...counts.values()) / votes.length) * 100) : null;
 		return html`
 			<div class="panel results-panel">
-				<label class="field">Results</label>
+				<label class="field">${t('Results')}</label>
 				<div class="stats">
 					<div class="stat">
 						<div class="num">${votes.length}</div>
-						<div class="lbl">votes</div>
+						<div class="lbl">${tn(votes.length, 'vote', 'votes')}</div>
 					</div>
 					${extras && avg !== null
 						? html`<div class="stat">
-								<div class="num">${Math.round(avg * 100) / 100}</div>
-								<div class="lbl">average</div>
+								<div class="num">${fmtNum(Math.round(avg * 100) / 100)}</div>
+								<div class="lbl">${t('average')}</div>
 							</div>`
 						: nothing}
 					${extras && agreement !== null
 						? html`<div class="stat">
 								<div class="num">${agreement}%</div>
-								<div class="lbl">agreement</div>
+								<div class="lbl">${t('agreement')}</div>
 							</div>`
 						: nothing}
-					${consensus ? html`<div class="consensus">🎉 Consensus!</div>` : nothing}
+					${consensus ? html`<div class="consensus">🎉 ${t('Consensus!')}</div>` : nothing}
 				</div>
 				${extras ? this.renderDistribution(s, votes) : nothing}
 			</div>
@@ -1601,7 +1600,7 @@ class RoomPage extends LitElement {
 		return html`
 			<div class="panel">
 				<details class="hist-details">
-					<summary>🗂 Up next (${queue.length})</summary>
+					<summary>🗂 ${t('Up next')} (${queue.length})</summary>
 					<div class="hist">
 						${queue.map((item, i) => {
 							const { text, url } = this.ticketParts(item);
@@ -1641,7 +1640,7 @@ class RoomPage extends LitElement {
 						<textarea
 							class="queue-add"
 							rows="3"
-							placeholder="Add tickets — one per line, or paste a tracker CSV export"
+							placeholder=${t('Add tickets — one per line, or paste a tracker CSV export')}
 							.value=${this.queueDraft}
 							@paste=${this.onQueuePaste}
 							@input=${(e: InputEvent) => (this.queueDraft = (e.target as HTMLTextAreaElement).value)}
@@ -1649,7 +1648,7 @@ class RoomPage extends LitElement {
 						${this.renderDraftPreview()}
 						<div class="toolbar">
 							<button class="btn" ?disabled=${this.draftLines().length === 0} @click=${this.addToQueue}>
-								${this.draftLines().length > 1 ? `Add ${this.draftLines().length} to queue` : 'Add to queue'}
+								${this.draftLines().length > 1 ? t('Add %1 to queue', this.draftLines().length) : t('Add to queue')}
 							</button>
 							<label class="btn csv-import">
 								📎 Import CSV
@@ -1869,21 +1868,21 @@ class RoomPage extends LitElement {
 		return html`
 			<div class="panel">
 				<details class="hist-details">
-					<summary>📜 Round history (${s.history.length})</summary>
+					<summary>📜 ${t('Round history')} (${s.history.length})</summary>
 					<div class="toolbar" style="margin-top:10px">
 						<button class="btn small" @click=${() => this.copyExport('md')}>
-							${this.copiedExport === 'md' ? 'Copied ✓' : 'Copy Markdown'}
+							${this.copiedExport === 'md' ? t('Copied ✓') : t('Copy Markdown')}
 						</button>
 						<button class="btn small" @click=${() => this.copyExport('csv')}>
-							${this.copiedExport === 'csv' ? 'Copied ✓' : 'Copy CSV'}
+							${this.copiedExport === 'csv' ? t('Copied ✓') : t('Copy CSV')}
 						</button>
-						<a class="btn small" href="/api/room/${this.roomId}/export${this.apiCodeQuery(s)}" download>Download JSON</a>
+						<a class="btn small" href="/api/room/${this.roomId}/export${this.apiCodeQuery(s)}" download>${t('Download JSON')}</a>
 						<a
 							class="btn small"
 							href="/api/room/${this.roomId}/export?format=csv${this.apiCodeQuery(s, '&')}"
 							download
 						>
-							Download CSV
+							${t('Download CSV')}
 						</a>
 					</div>
 					${s.settings.agentPrompts !== false ? this.renderAgentPrompt('export') : nothing}
@@ -1891,11 +1890,11 @@ class RoomPage extends LitElement {
 						${s.history.map(
 							(r) => html`
 								<div class="hist-row">
-									<span class="hist-story ${r.story ? '' : 'untitled'}">${r.story || 'Untitled round'}</span>
+									<span class="hist-story ${r.story ? '' : 'untitled'}">${r.story || t('Untitled round')}</span>
 									<div class="hist-meta">
 										${r.votes.map((v) => html`<span class="hist-chip">${v.label}${v.count > 1 ? ` ×${v.count}` : ''}</span>`)}
 										<span>⏱ ${this.formatDuration(r.durationMs)}</span>
-										<span class="hist-when">${this.timeAgo(r.endedAt)}</span>
+										<span class="hist-when">${timeAgo(r.endedAt)}</span>
 									</div>
 								</div>
 							`,
@@ -1947,14 +1946,6 @@ class RoomPage extends LitElement {
 		return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}:${String(sec).padStart(2, '0')}`;
 	}
 
-	private timeAgo(ts: number): string {
-		const mins = Math.round((Date.now() - ts) / 60_000);
-		if (mins < 1) return 'just now';
-		if (mins < 60) return `${mins}m ago`;
-		const hours = Math.round(mins / 60);
-		if (hours < 24) return `${hours}h ago`;
-		return `${Math.round(hours / 24)}d ago`;
-	}
 
 	/** Seconds until the running countdown reveals (never below 0). */
 	private countdownRemaining(s: RoomStateView): number {

@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { baseStyles } from './base-styles';
 import type { DeckCard, RoomSettings } from '../../shared/types';
 import { DECK_PRESETS, THEMES } from '../../shared/types';
+import { t } from '../i18n';
 
 type Tab = 'general' | 'theme' | 'features';
 
@@ -220,7 +221,7 @@ class SettingsPanel extends LitElement {
 		];
 		return html`
 			<div class="panel">
-				<h3>Room settings</h3>
+				<h3>${t('Room settings')}</h3>
 				<div class="tabs" role="tablist">
 					${tabs.map(
 						([id, label]) => html`
@@ -230,7 +231,7 @@ class SettingsPanel extends LitElement {
 								aria-selected=${this.tab === id}
 								@click=${() => (this.tab = id)}
 							>
-								${label}
+								${t(label)}
 							</button>
 						`,
 					)}
@@ -239,8 +240,8 @@ class SettingsPanel extends LitElement {
 				${this.tab === 'theme' ? this.renderTheme(d) : ''}
 				${this.tab === 'features' ? this.renderFeatures(d) : ''}
 				<div class="actions">
-					<button class="btn primary" @click=${this.save}>Save settings</button>
-					<button class="btn" @click=${() => this.dispatchEvent(new CustomEvent('close'))}>Cancel</button>
+					<button class="btn primary" @click=${this.save}>${t('Save settings')}</button>
+					<button class="btn" @click=${() => this.dispatchEvent(new CustomEvent('close'))}>${t('Cancel')}</button>
 				</div>
 			</div>
 		`;
@@ -248,43 +249,43 @@ class SettingsPanel extends LitElement {
 
 	private renderGeneral(d: RoomSettings) {
 		return html`
-			<label class="field">Room name</label>
+			<label class="field">${t('Room name')}</label>
 			<input
 				type="text"
 				class="room-name"
-				placeholder="e.g. Plantiful web team"
+				placeholder=${t('e.g. Plantiful web team')}
 				.value=${d.roomName}
 				@input=${(e: InputEvent) => this.patch({ roomName: (e.target as HTMLInputElement).value })}
 			/>
 
-			<label class="field">Point values</label>
+			<label class="field">${t('Point values')}</label>
 			<div class="presets">
 				${Object.entries(DECK_PRESETS).map(
 					([key, deck]) => html`
 						<button class="btn" @click=${() => this.patch({ deck: deck.map((c) => ({ ...c })) })}>
-							${key === 'fibonacci' ? 'Fibonacci' : key === 'tshirt' ? 'T-shirt' : 'Powers of 2'}
+							${key === 'fibonacci' ? t('Fibonacci') : key === 'tshirt' ? t('T-shirt') : t('Powers of 2')}
 						</button>
 					`,
 				)}
 			</div>
 			<div style="margin-top:12px">
 				<div class="row head ${this.showGroups ? 'grouped' : ''}">
-					<span>Label</span>
-					<span>Value</span>
-					${this.showGroups ? html`<span>Group</span>` : ''}
+					<span>${t('Label')}</span>
+					<span>${t('Value')}</span>
+					${this.showGroups ? html`<span>${t('Group')}</span>` : ''}
 				</div>
 				${d.deck.map(
 					(card, i) => html`
 						<div class="row ${this.showGroups ? 'grouped' : ''}">
 							<input
 								type="text"
-								placeholder="Label"
+								placeholder=${t('Label')}
 								.value=${card.label}
 								@input=${(e: InputEvent) => this.patchCard(i, { label: (e.target as HTMLInputElement).value })}
 							/>
 							<input
 								type="text"
-								placeholder="Value"
+								placeholder=${t('Value')}
 								.value=${card.value}
 								@input=${(e: InputEvent) => this.patchCard(i, { value: (e.target as HTMLInputElement).value })}
 							/>
@@ -292,32 +293,31 @@ class SettingsPanel extends LitElement {
 								? html`<input
 										type="text"
 										placeholder="—"
-										title="Cards sharing a group render as a labeled cluster in the voting hand"
+										title=${t('Cards sharing a group render as a labeled cluster in the voting hand')}
 										.value=${card.group ?? ''}
 										@input=${(e: InputEvent) => this.patchCard(i, { group: (e.target as HTMLInputElement).value })}
 									/>`
 								: ''}
-							<button title="Move up" ?disabled=${i === 0} @click=${() => this.moveCard(i, -1)}>⬆︎</button>
-							<button title="Move down" ?disabled=${i === d.deck.length - 1} @click=${() => this.moveCard(i, 1)}>⬇︎</button>
-							<button title="Remove" @click=${() => this.removeCard(i)}>✕</button>
+							<button title=${t('Move up')} ?disabled=${i === 0} @click=${() => this.moveCard(i, -1)}>⬆︎</button>
+							<button title=${t('Move down')} ?disabled=${i === d.deck.length - 1} @click=${() => this.moveCard(i, 1)}>⬇︎</button>
+							<button title=${t('Remove')} @click=${() => this.removeCard(i)}>✕</button>
 						</div>
 					`,
 				)}
-				<button class="btn" @click=${this.addCard}>+ Add value</button>
+				<button class="btn" @click=${this.addCard}>+ ${t('Add value')}</button>
 				${!this.showGroups
 					? html`
 							<button
 								class="btn ghost"
-								title="Cluster cards under labels in the voting hand — e.g. severity tiers in a triage room"
+								title=${t('Cluster cards under labels in the voting hand — e.g. severity tiers in a triage room')}
 								@click=${() => (this.showGroups = true)}
 							>
-								+ Groups
+								+ ${t('Groups')}
 							</button>
 						`
 					: html`
 							<p class="hint">
-								Cards sharing a Group render as a labeled cluster in the voting hand (e.g. severity tiers
-								in a triage room). Leave blank for one flat hand.
+								${t('Cards sharing a Group render as a labeled cluster in the voting hand (e.g. severity tiers in a triage room). Leave blank for one flat hand.')}
 							</p>
 						`}
 			</div>
@@ -326,14 +326,14 @@ class SettingsPanel extends LitElement {
 
 	private renderTheme(d: RoomSettings) {
 		return html`
-			<label class="field">Theme</label>
+			<label class="field">${t('Theme')}</label>
 			<div class="presets">
 				<button
 					class="btn ${d.theme === 'seasonal' ? 'primary' : ''}"
-					title="Follows the calendar — the room re-themes itself as holidays approach"
+					title=${t('Follows the calendar — the room re-themes itself as holidays approach')}
 					@click=${() => this.patch({ theme: 'seasonal' })}
 				>
-					🗓 Seasonal (auto)
+					🗓 ${t('Seasonal (auto)')}
 				</button>
 				${THEMES.map(
 					(t) => html`
@@ -357,7 +357,7 @@ class SettingsPanel extends LitElement {
 							new CustomEvent('set-code', { detail: { enabled: (e.target as HTMLInputElement).checked } }),
 						)}
 				/>
-				🔒 Require a room code (applies immediately; invite links carry it)
+				🔒 ${t('Require a room code (applies immediately; invite links carry it)')}
 			</label>
 			${this.accessCode
 				? html`
@@ -365,10 +365,10 @@ class SettingsPanel extends LitElement {
 							<code class="access-code">${this.accessCode}</code>
 							<button
 								class="btn small-btn"
-								title="Generate a new code (the old one stops working; people already here stay)"
+								title=${t('Generate a new code (the old one stops working; people already here stay)')}
 								@click=${() => this.dispatchEvent(new CustomEvent('set-code', { detail: { enabled: true } }))}
 							>
-								↻ New code
+								↻ ${t('New code')}
 							</button>
 						</div>
 					`
@@ -385,7 +385,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.autoReveal}
 					@change=${(e: Event) => this.patch({ autoReveal: (e.target as HTMLInputElement).checked })}
 				/>
-				Reveal automatically when everyone has voted
+				${t('Reveal automatically when everyone has voted')}
 			</label>
 
 			<label class="check">
@@ -394,7 +394,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.timerSounds ?? true}
 					@change=${(e: Event) => this.patch({ timerSounds: (e.target as HTMLInputElement).checked })}
 				/>
-				Timer chimes at 5 &amp; 10 minutes (room-wide; anyone can mute for themselves)
+				${t('Timer chimes at 5 & 10 minutes (room-wide; anyone can mute for themselves)')}
 			</label>
 
 			<label class="check">
@@ -403,7 +403,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.countdown ?? true}
 					@change=${(e: Event) => this.patch({ countdown: (e.target as HTMLInputElement).checked })}
 				/>
-				Voting countdown button (votes reveal automatically at zero)
+				${t('Voting countdown button (votes reveal automatically at zero)')}
 			</label>
 			${(d.countdown ?? true)
 				? html`
@@ -417,7 +417,7 @@ class SettingsPanel extends LitElement {
 								@input=${(e: InputEvent) =>
 									this.patch({ countdownSeconds: Number((e.target as HTMLInputElement).value) || 60 })}
 							/>
-							seconds
+							${t('seconds')}
 						</label>
 					`
 				: ''}
@@ -428,7 +428,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.ticketQueue ?? true}
 					@change=${(e: Event) => this.patch({ ticketQueue: (e.target as HTMLInputElement).checked })}
 				/>
-				Ticket queue (“Up next” panel and API imports)
+				${t('Ticket queue (“Up next” panel and API imports)')}
 			</label>
 
 			<label class="check">
@@ -437,7 +437,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.freshClock ?? true}
 					@change=${(e: Event) => this.patch({ freshClock: (e.target as HTMLInputElement).checked })}
 				/>
-				Restart the round clock when the first person returns to an empty room
+				${t('Restart the round clock when the first person returns to an empty room')}
 			</label>
 
 			<label class="check">
@@ -446,7 +446,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.awayVotes ?? true}
 					@change=${(e: Event) => this.patch({ awayVotes: (e.target as HTMLInputElement).checked })}
 				/>
-				Count away votes (vote, close the tab, still count — seat shows 💤)
+				${t('Count away votes (vote, close the tab, still count — seat shows 💤)')}
 			</label>
 
 			<label class="check">
@@ -455,7 +455,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.anonymousVotes ?? false}
 					@change=${(e: Event) => this.patch({ anonymousVotes: (e.target as HTMLInputElement).checked })}
 				/>
-				Anonymous voting (reveal shows counts and stats, never who voted what)
+				${t('Anonymous voting (reveal shows counts and stats, never who voted what)')}
 			</label>
 
 			<label class="check">
@@ -464,7 +464,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.voteStats ?? true}
 					@change=${(e: Event) => this.patch({ voteStats: (e.target as HTMLInputElement).checked })}
 				/>
-				Vote statistics on reveal (average, agreement %, distribution chart)
+				${t('Vote statistics on reveal (average, agreement %, distribution chart)')}
 			</label>
 
 			<label class="check">
@@ -473,7 +473,7 @@ class SettingsPanel extends LitElement {
 					.checked=${d.agentPrompts ?? true}
 					@change=${(e: Event) => this.patch({ agentPrompts: (e.target as HTMLInputElement).checked })}
 				/>
-				“Use your agent” prompts in the queue and history panels (Linear/Jira/GitHub samples)
+				${t('“Use your agent” prompts in the queue and history panels (Linear/Jira/GitHub samples)')}
 			</label>
 
 			<label class="check">
@@ -482,12 +482,12 @@ class SettingsPanel extends LitElement {
 					.checked=${d.keepHistory ?? true}
 					@change=${(e: Event) => this.patch({ keepHistory: (e.target as HTMLInputElement).checked })}
 				/>
-				Keep round history (story, votes, and duration of finished rounds)
+				${t('Keep round history (story, votes, and duration of finished rounds)')}
 			</label>
 			${this.historyCount > 0
 				? html`
 						<button class="btn danger history-clear" @click=${this.clearHistory}>
-							Clear history (${this.historyCount} round${this.historyCount === 1 ? '' : 's'})
+							${t('Clear history')} (${this.historyCount})
 						</button>
 					`
 				: ''}

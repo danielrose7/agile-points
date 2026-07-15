@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from './base-styles';
 import footerLinks from '../../shared/footer-links.json';
+import { t, LOCALES, currentLocale, setLocale, type LocaleId } from '../i18n';
 
 /**
  * Site-wide footer: link columns from shared/footer-links.json (the docs
@@ -74,6 +75,28 @@ class SiteFooter extends LitElement {
 			opacity: 0.55;
 			font-size: 0.78rem;
 		}
+		.bottom-right {
+			display: inline-flex;
+			align-items: baseline;
+			gap: 14px;
+		}
+		.locale {
+			font-size: 0.8rem;
+			opacity: 0.8;
+		}
+		.locale select {
+			font: inherit;
+			color: inherit;
+			background: transparent;
+			border: 1px solid color-mix(in srgb, var(--sp-on-bg) 30%, transparent);
+			border-radius: 6px;
+			padding: 2px 4px;
+			cursor: pointer;
+		}
+		.locale select option {
+			color: var(--sp-surface-text);
+			background: var(--sp-surface);
+		}
 		.mountain-link {
 			display: inline-block;
 			text-decoration: none;
@@ -132,13 +155,13 @@ class SiteFooter extends LitElement {
 			<div class="cols">
 				<div class="brand-block">
 					<div class="brand-title">${footerLinks.brand.title}</div>
-					<div class="brand-tagline">${footerLinks.brand.tagline}</div>
+					<div class="brand-tagline">${t(footerLinks.brand.tagline)}</div>
 				</div>
 				${footerLinks.groups.map(
 					(g) => html`
 						<div class="group">
-							<div class="group-title">${g.title}</div>
-							${g.links.map((l) => html`<a href=${l.href}>${l.label}</a>`)}
+							<div class="group-title">${t(g.title)}</div>
+							${g.links.map((l) => html`<a href=${l.href}>${t(l.label)}</a>`)}
 						</div>
 					`,
 				)}
@@ -147,7 +170,20 @@ class SiteFooter extends LitElement {
 				<a class="mountain-link" href=${footerLinks.credit.href} target="_blank" rel="noopener noreferrer">
 					<span class="mountain-label">${footerLinks.credit.label}</span>
 				</a>
-				<span class="legal">${footerLinks.legal}</span>
+				<span class="bottom-right">
+					<label class="locale">
+						🌐
+						<select
+							aria-label=${t('Language')}
+							@change=${(e: Event) => setLocale((e.target as HTMLSelectElement).value as LocaleId)}
+						>
+							${LOCALES.map(
+								(l) => html`<option value=${l.id} ?selected=${l.id === currentLocale()}>${l.label}</option>`,
+							)}
+						</select>
+					</label>
+					<span class="legal">${footerLinks.legal}</span>
+				</span>
 			</div>
 		`;
 	}

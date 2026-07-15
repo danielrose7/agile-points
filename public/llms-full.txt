@@ -40,6 +40,10 @@ reclaims your seat.
   anything that can run `curl` can import a backlog and export results.
 - **Free to run.** Cloudflare Workers + one Durable Object per room, within
   the free plan — and [self-hostable](/docs/self-host) on yours.
+- **Speaks your language.** The app UI ships in English, Español, Deutsch,
+  Français, Português, and 日本語 — auto-detected from your browser, with a
+  🌐 switcher in the footer. Language is personal, not per-room: one invite
+  link, and each teammate sees their own. (These docs stay English.)
 
 
 ---

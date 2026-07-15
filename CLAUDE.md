@@ -36,6 +36,28 @@ When adding a field to `RoomStateView`/`ServerMessage` or any public
 endpoint, ask: *is this someone else's credential, or state that's hidden
 on purpose?* If yes, alias it, aggregate it, or leave it out.
 
+## Every user-facing string goes through t()
+
+The app UI ships in en/es/de/fr/pt/ja via a hand-rolled, zero-dependency
+layer in `src/i18n.ts` (deliberate — no i18n library):
+
+- Any string a participant can see — text, placeholder, `title`,
+  `aria-label`, toast — must be wrapped: `t('Create a room')`. Keys ARE the
+  English source strings; a missing translation falls back to English, so
+  forgetting a dictionary entry is cosmetic, forgetting `t()` is a bug.
+- Counts: `tn(n, 'singular key', 'plural key')` (native `Intl.PluralRules`);
+  numbers through `fmtNum()` (decimal commas!), relative times through
+  `timeAgo()`. Never hand-format any of these.
+- New strings need a matching entry in each `src/locales/*.ts` dictionary
+  (machine-authored first pass is fine — the file headers invite native
+  review). Locale files are the community-contribution surface: one file,
+  one PR.
+- Locale is a *personal* setting (localStorage + `Accept-Language`), never
+  in URLs — room URLs are capabilities shared across mixed-language teams.
+- Deliberately English: docs pages, llms.txt, server-sent error strings,
+  agent prompts, and the theme-emoji pun tooltips (`REACTION_LABELS` theme
+  entries; the core eight are translated).
+
 ## Other conventions
 
 - Element tags are `points-*`; no `Pp` class-name prefixes.

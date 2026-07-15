@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../i18n';
 
 export type CelebrationKind = 'consensus' | 'split' | 'allq';
 
@@ -386,7 +387,7 @@ class FxLayer extends LitElement {
 	/** Easter egg: the story box said YOLO. */
 	flames(): void {
 		this.rain(['🔥', '🔥', '✨']);
-		this.toast('🔥 YOLO estimation detected');
+		this.toast(t('🔥 YOLO estimation detected'));
 	}
 
 	private spawnRabbit(name: string): void {
@@ -402,7 +403,7 @@ class FxLayer extends LitElement {
 		if (this.rabbitTimes.length >= RABBIT_PILE_COUNT && now - this.lastRabbitToast > RABBIT_TOAST_COOLDOWN_MS) {
 			this.lastRabbitToast = now;
 			this.rabbitTimes = [];
-			this.toast('🐇🕳️ Side quest detected — park it and move on?');
+			this.toast(t('🐇🕳️ Side quest detected — park it and move on?'));
 		}
 	}
 

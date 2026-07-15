@@ -1,12 +1,11 @@
 import { LitElement, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
-import './components/home-page';
-import './components/room-page';
+import { initI18n } from './i18n';
 
-export function navigate(path: string): void {
-	history.pushState(null, '', path);
-	window.dispatchEvent(new PopStateEvent('popstate'));
-}
+// Load the locale dictionary before any component renders (top-level await;
+// English resolves instantly). Components import ./i18n and call t().
+await initI18n();
+await Promise.all([import('./components/home-page'), import('./components/room-page')]);
 
 class AppRoot extends LitElement {
 	static properties = {

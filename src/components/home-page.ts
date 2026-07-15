@@ -2,7 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { baseStyles } from './base-styles';
 import './site-footer';
 import { generateRoomSlug } from '../slug';
-import { navigate } from '../main';
+import { navigate } from '../router';
+import { t, tn, fmtNum, timeAgo } from '../i18n';
 import { applyTheme, todaysTheme } from '../theme';
 import { getRecentRooms, type RecentRoom } from '../recents';
 import { ROOM_PRESETS, type RoomPeek, type StatsSnapshot } from '../../shared/types';
@@ -391,81 +392,78 @@ class HomePage extends LitElement {
 				${this.lostPath ? this.renderLost() : ''}
 				<div class="panel">
 				<h1>🃏 Story Points</h1>
-				<p class="tagline">Estimate together, in realtime.</p>
-				<button class="primary" @click=${this.createRoom}>Create a room</button>
+				<p class="tagline">${t('Estimate together, in realtime.')}</p>
+				<button class="primary" @click=${this.createRoom}>${t('Create a room')}</button>
 				<label class="preset-row">
-					<span>starting from</span>
+					<span>${t('starting from')}</span>
 					<select @change=${(e: Event) => (this.preset = (e.target as HTMLSelectElement).value)}>
 						${ROOM_PRESETS.map(
-							(p) => html`<option value=${p.id} title=${p.description} ?selected=${p.id === this.preset}>
-								${p.label}
+							(p) => html`<option value=${p.id} title=${t(p.description)} ?selected=${p.id === this.preset}>
+								${t(p.label)}
 							</option>`,
 						)}
 					</select>
 				</label>
-				<div class="divider">or join an existing one</div>
+				<div class="divider">${t('or join an existing one')}</div>
 				<form @submit=${this.joinRoom}>
 					<input
-						placeholder="room name, e.g. brave-gold-otter"
+						placeholder=${t('room name, e.g. brave-gold-otter')}
 						.value=${this.joinCode}
 						@input=${(e: InputEvent) => (this.joinCode = (e.target as HTMLInputElement).value)}
 					/>
-					<button type="submit">Join</button>
+					<button type="submit">${t('Join')}</button>
 				</form>
 				${this.renderStats()}
 				</div>
 				${this.recents.length ? this.renderRecents() : ''}
 			</div>
 			<div class="trust">
-				<span>Free forever</span>
-				<span>Open source (MIT)</span>
-				<span>No accounts</span>
+				<span>${t('Free forever')}</span>
+				<span>${t('Open source (MIT)')}</span>
+				<span>${t('No accounts')}</span>
 			</div>
 			</div>
 
 			<div class="below">
 				<div>
-					<h2>How it works</h2>
+					<h2>${t('How it works')}</h2>
 					<ol class="steps">
 						<li>
 							<span class="step-num">1</span>
-							<div class="how">Create a room — or claim any URL you like</div>
+							<div class="how">${t('Create a room — or claim any URL you like')}</div>
 						</li>
 						<li>
 							<span class="step-num">2</span>
-							<div class="how">Share the link; the URL is the invite</div>
+							<div class="how">${t('Share the link; the URL is the invite')}</div>
 						</li>
 						<li>
 							<span class="step-num">3</span>
-							<div class="how">Vote in secret, reveal together, discuss</div>
+							<div class="how">${t('Vote in secret, reveal together, discuss')}</div>
 						</li>
 					</ol>
 				</div>
 				<div class="feats">
 					<a class="feat" href="/docs/api">
-						<strong>🤖 Agent-ready</strong>
-						Import backlogs and export results over a plain-HTTP API; llms.txt
-						and a one-step setup prompt for AI agents.
-						<div class="more">API docs →</div>
+						<strong>🤖 ${t('Agent-ready')}</strong>
+						${t('Import backlogs and export results over a plain-HTTP API; llms.txt and a one-step setup prompt for AI agents.')}
+						<div class="more">${t('API docs')} →</div>
 					</a>
 					<a class="feat" href="/docs/themes">
-						<strong>🎨 17 themes</strong>
-						Card table to spaceship, plus a full seasonal calendar — new rooms
-						dress for the date.
-						<div class="more">Browse themes →</div>
+						<strong>🎨 ${t('17 themes')}</strong>
+						${t('Card table to spaceship, plus a full seasonal calendar — new rooms dress for the date.')}
+						<div class="more">${t('Browse themes')} →</div>
 					</a>
 					<a class="feat" href="/docs/features">
-						<strong>📜 History &amp; export</strong>
-						Every round recorded; copy out as Markdown or CSV, or pull JSON
-						from the API.
-						<div class="more">All features →</div>
+						<strong>📜 ${t('History & export')}</strong>
+						${t('Every round recorded; copy out as Markdown or CSV, or pull JSON from the API.')}
+						<div class="more">${t('All features')} →</div>
 					</a>
 				</div>
 				<p class="oss">
-					MIT-licensed and <a href="/docs/self-host">self-hostable in three commands</a>
-					— no paywall, no catch.
+					${t('MIT-licensed and')} <a href="/docs/self-host">${t('self-hostable in three commands')}</a>
+					${t('— no paywall, no catch.')}
 					<a href="https://github.com/danielrose7/story-points">GitHub</a> ·
-					<a href="/docs/compare">How it compares</a>
+					<a href="/docs/compare">${t('How it compares')}</a>
 				</p>
 			</div>
 			<points-footer></points-footer>
@@ -480,13 +478,15 @@ class HomePage extends LitElement {
 		const parts = [];
 		if (s.liveRooms > 0) {
 			parts.push(
-				html`<span class="live-dot"></span> ${s.liveRooms === 1
-					? '1 team'
-					: `${s.liveRooms} teams`} estimating right now`,
+				html`<span class="live-dot"></span> ${tn(
+					s.liveRooms,
+					'1 team estimating right now',
+					'%1 teams estimating right now',
+				)}`,
 			);
 		}
 		if (s.votes >= VOTES_DISPLAY_FLOOR) {
-			parts.push(html`${s.votes.toLocaleString()} votes cast`);
+			parts.push(html`${t('%1 votes cast', fmtNum(s.votes))}`);
 		}
 		if (parts.length === 0) return '';
 		return html`<div class="stats">
@@ -497,13 +497,13 @@ class HomePage extends LitElement {
 	private renderRecents() {
 		return html`
 			<div class="panel recents">
-				<div class="recents-title">Jump back in</div>
+				<div class="recents-title">${t('Jump back in')}</div>
 				${this.recents.map(
 					(r) => html`
 						<a class="recent" href="/room/${r.id}" @click=${(e: MouseEvent) => this.openRecent(e, r.id)}>
 							<span class="recent-name">${r.name || r.id}</span>
 							${r.name ? html`<span class="recent-slug">${r.id}</span>` : ''}
-							<span class="recent-when">${this.timeAgo(r.lastSeen)}</span>
+							<span class="recent-when">${timeAgo(r.lastSeen)}</span>
 						</a>
 					`,
 				)}
@@ -514,16 +514,6 @@ class HomePage extends LitElement {
 	private openRecent(e: MouseEvent, id: string): void {
 		e.preventDefault();
 		navigate(`/room/${id}`);
-	}
-
-	private timeAgo(ts: number): string {
-		const mins = Math.round((Date.now() - ts) / 60_000);
-		if (mins < 1) return 'just now';
-		if (mins < 60) return `${mins}m ago`;
-		const hours = Math.round(mins / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.round(hours / 24);
-		return `${days}d ago`;
 	}
 
 	private renderLost() {
