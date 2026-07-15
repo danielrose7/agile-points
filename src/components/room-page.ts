@@ -469,6 +469,11 @@ class RoomPage extends LitElement {
 			opacity: 0.5;
 			cursor: default;
 		}
+		.card:focus-visible,
+		.react:focus-visible {
+			outline: 3px solid var(--sp-accent);
+			outline-offset: 2px;
+		}
 
 		/* Players */
 		table {
@@ -1075,6 +1080,24 @@ class RoomPage extends LitElement {
 		`,
 	];
 
+	/** Arrow keys walk the whole hand (across groups); Home/End jump. */
+	private onDeckKeydown = (e: KeyboardEvent): void => {
+		const step: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+		if (!(e.key in step) && e.key !== 'Home' && e.key !== 'End') return;
+		const cards = [...this.renderRoot.querySelectorAll<HTMLButtonElement>('.deck .card')];
+		if (cards.length === 0) return;
+		e.preventDefault();
+		const active = (this.renderRoot as ShadowRoot).activeElement as HTMLButtonElement | null;
+		const idx = Math.max(0, cards.indexOf(active as HTMLButtonElement));
+		const next =
+			e.key === 'Home'
+				? cards[0]
+				: e.key === 'End'
+					? cards[cards.length - 1]
+					: cards[(idx + step[e.key] + cards.length) % cards.length];
+		next.focus();
+	};
+
 	/** How many connected voters have voted (mirrors what the table shows). */
 	private votedProgress(s: RoomStateView | null): { done: number; total: number } {
 		const voters = (s?.participants ?? []).filter((p) => p.role === 'voter');
@@ -1210,19 +1233,22 @@ class RoomPage extends LitElement {
 				<h2>Take a seat</h2>
 				<input
 					placeholder="Your name"
+					aria-label="Your name"
 					.value=${this.nameDraft}
 					@input=${(e: InputEvent) => (this.nameDraft = (e.target as HTMLInputElement).value)}
 					@keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.join()}
 				/>
-				<div class="roles">
+				<div class="roles" role="group" aria-label="Join as">
 					<button
 						class=${this.roleDraft === 'voter' ? 'active' : ''}
+						aria-pressed=${this.roleDraft === 'voter' ? 'true' : 'false'}
 						@click=${() => (this.roleDraft = 'voter')}
 					>
 						🎴 Voter
 					</button>
 					<button
 						class=${this.roleDraft === 'observer' ? 'active' : ''}
+						aria-pressed=${this.roleDraft === 'observer' ? 'true' : 'false'}
 						@click=${() => (this.roleDraft = 'observer')}
 					>
 						👀 Observer
@@ -1305,26 +1331,36 @@ class RoomPage extends LitElement {
 			${me?.role === 'voter'
 				? html`
 						<div class="panel">
-							<label class="field">Your vote</label>
-							${this.deckClusters(s).map(
-								([group, cards]) => html`
-									${group ? html`<div class="deck-group-label">${group}</div>` : nothing}
-									<div class="deck">
-										${cards.map((c) => {
-											const selected = me.vote === c.value;
-											return html`
-												<button
-													class="card ${selected ? 'selected' : ''}"
-													?disabled=${s.revealed}
-													@click=${() => this.conn?.send({ type: 'vote', value: selected ? null : c.value })}
-												>
-													${c.label}
-												</button>
-											`;
-										})}
-									</div>
-								`,
-							)}
+							<label class="field" id="deck-label">Your vote</label>
+							<div role="radiogroup" aria-labelledby="deck-label" @keydown=${this.onDeckKeydown}>
+								${this.deckClusters(s).map(([group, cards]) => {
+									// Roving tabindex: the selected card is the tab stop; with
+									// no vote yet, the first card is. Arrows move focus only —
+									// selecting on arrow would cast votes mid-navigation (and
+									// could trip auto-reveal), so Space/Enter still selects.
+									const firstValue = this.deckClusters(s)[0]?.[1]?.[0]?.value;
+									return html`
+										${group ? html`<div class="deck-group-label">${group}</div>` : nothing}
+										<div class="deck">
+											${cards.map((c) => {
+												const selected = me.vote === c.value;
+												return html`
+													<button
+														class="card ${selected ? 'selected' : ''}"
+														role="radio"
+														aria-checked=${selected ? 'true' : 'false'}
+														tabindex=${selected || (!me.vote && c.value === firstValue) ? 0 : -1}
+														?disabled=${s.revealed}
+														@click=${() => this.conn?.send({ type: 'vote', value: selected ? null : c.value })}
+													>
+														${c.label}
+													</button>
+												`;
+											})}
+										</div>
+									`;
+								})}
+							</div>
 						</div>
 					`
 				: nothing}
@@ -1375,9 +1411,9 @@ class RoomPage extends LitElement {
 													>`
 												: p.hasVoted
 													? s.revealed
-														? html`<span class="vote-chip hidden-vote" title="Voted (anonymous)">✓</span>`
-														: html`<span class="vote-chip hidden-vote">?</span>`
-													: html`<span class="vote-chip waiting">…</span>`}
+														? html`<span class="vote-chip hidden-vote" role="img" aria-label="voted (anonymous)" title="Voted (anonymous)">✓</span>`
+														: html`<span class="vote-chip hidden-vote" role="img" aria-label="voted — hidden until reveal">?</span>`
+													: html`<span class="vote-chip waiting" role="img" aria-label="hasn’t voted yet">…</span>`}
 									</td>
 								</tr>
 							`,
@@ -1436,9 +1472,16 @@ class RoomPage extends LitElement {
 					></points-settings>`
 				: nothing}
 
-			<div class="reactions" title="React — 🐇 = we're going down a rabbit hole">
+			<div class="reactions" role="toolbar" aria-label="Reactions" title="React — 🐇 = we're going down a rabbit hole">
 				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.theme] ?? [])].map(
-					(e) => html`<button class="react" @click=${() => this.sendReaction(e)}>${e}</button>`,
+					(e) =>
+						html`<button
+							class="react"
+							aria-label=${e === '🐇' ? 'React with 🐇 — we’re going down a rabbit hole' : `React with ${e}`}
+							@click=${() => this.sendReaction(e)}
+						>
+							${e}
+						</button>`,
 				)}
 			</div>
 
