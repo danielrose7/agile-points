@@ -541,9 +541,24 @@ class HomePage extends LitElement {
 		`;
 	}
 
-	private createRoom = () => {
+	private createRoom = async () => {
 		const q = this.preset && this.preset !== 'sprint' ? `?preset=${this.preset}` : '';
-		navigate(`/room/${generateRoomSlug()}${q}`);
+		// The word lists are small (16³ per locale) and a slug is a capability:
+		// colliding with a live room would drop you into a stranger's session.
+		// Peek before claiming; retry a few times, then bolt on a numeric
+		// suffix if the namespace is somehow that busy.
+		for (let i = 0; i < 4; i++) {
+			const slug = generateRoomSlug();
+			try {
+				const peek = (await fetch(`/api/room/${slug}/peek`).then((r) => r.json())) as RoomPeek;
+				if (!peek.exists) return navigate(`/room/${slug}${q}`);
+			} catch {
+				// peek unavailable — better to proceed than to block creation
+				return navigate(`/room/${slug}${q}`);
+			}
+		}
+		const n = 10 + (crypto.getRandomValues(new Uint32Array(1))[0] % 90);
+		navigate(`/room/${generateRoomSlug()}-${n}${q}`);
 	};
 
 	private joinRoom = (e: SubmitEvent) => {
