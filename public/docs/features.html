@@ -128,8 +128,14 @@ blockquote {
 so a room only shows what its team actually uses. Presets bundle sensible
 combinations at creation time.</p>
 <h2 id="ticket-queue">Ticket queue</h2>
-<p>An <strong>Up next</strong> list of stories waiting their turn. Add them one-per-line in
-the app, or <code>POST</code> them from a script (see <a href="/docs/api">API</a>). <strong>Next ticket →</strong>
+<p>An <strong>Up next</strong> list of stories waiting their turn. Fill it four ways: type
+one-per-line, paste a tracker export (smart paste), 📎 <strong>Import CSV</strong> (Linear
+and Jira exports parse natively — multi-line descriptions and all), or
+<code>POST</code> from a script/agent (see <a href="/docs/api">API</a>). Imports stage into a
+<strong>preview table</strong> — edit, reorder, or drop rows before adding. Lines ending
+in a ticket URL render a clickable ↗ link, in the queue and on the current
+story (Linear links are built automatically once the app has seen your
+workspace URL). Queue items can be reordered in place; <strong>Next ticket →</strong>
 records the finished round and pulls the front of the queue into the story.
 Toggle off to hide the panel and reject API imports.</p>
 <h2 id="round-history">Round history</h2>

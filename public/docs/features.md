@@ -6,8 +6,14 @@ combinations at creation time.
 
 ## Ticket queue
 
-An **Up next** list of stories waiting their turn. Add them one-per-line in
-the app, or `POST` them from a script (see [API](/docs/api)). **Next ticket →**
+An **Up next** list of stories waiting their turn. Fill it four ways: type
+one-per-line, paste a tracker export (smart paste), 📎 **Import CSV** (Linear
+and Jira exports parse natively — multi-line descriptions and all), or
+`POST` from a script/agent (see [API](/docs/api)). Imports stage into a
+**preview table** — edit, reorder, or drop rows before adding. Lines ending
+in a ticket URL render a clickable ↗ link, in the queue and on the current
+story (Linear links are built automatically once the app has seen your
+workspace URL). Queue items can be reordered in place; **Next ticket →**
 records the finished round and pulls the front of the queue into the story.
 Toggle off to hide the panel and reject API imports.
 

@@ -84,7 +84,8 @@ export function importPrompt(trackerId: string, roomUrl: string, scope = ''): st
 	const gather = scope.trim() ? t.scoped(scope.trim()) : t.gather;
 	return `${SETUP(origin)}
 Then, ${gather}, and import them into the estimation queue for ${roomUrl} \
-(one story per line; include the ticket id in the line). \
+(one story per line, formatted "ID Title URL" — the trailing ticket URL, \
+when you have one, becomes a clickable link in the room). \
 Confirm by telling me how many are queued.`;
 }
 

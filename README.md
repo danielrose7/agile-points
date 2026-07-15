@@ -127,10 +127,12 @@ hand. All of it stays editable in room settings afterwards.
 
 ## Ticket queue & the import/export API
 
-Rooms have an "Up next" queue: paste tickets one-per-line in the app (or POST
-them, below) and **Next ticket →** pulls the front of the queue into the story
-after recording the finished round. History can be copied out of the app as
-Markdown or CSV.
+Rooms have an "Up next" queue: type tickets one-per-line, smart-paste or
+📎-import a tracker CSV export (Linear/Jira parse natively, with a preview
+table for edit/reorder/remove before committing, and automatic ↗ ticket
+links), or POST them (below). **Next ticket →** pulls the front of the queue
+into the story after recording the finished round. History can be copied out
+of the app as Markdown or CSV.
 
 Deliberately **no tracker-specific integrations** (no Jira/Linear/GitHub
 plumbing in this repo). Instead, a room exposes a tiny plain-HTTP surface —
