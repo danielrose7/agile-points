@@ -189,21 +189,21 @@ for now; revisit when real usage hits friction):
    tools) for claude.ai and Claude Desktop. Lives outside this repo per the
    no-integrations rule either way.
 
-Next up if we do a **UX refresh** (from the July 2026 self-critique — full
-detail in the project-status artifact):
+**Room UX refresh — shipped July 2026**: two-column desktop layout
+(story/deck/queue left, players/results right — reveal lands beside the
+table, not below the fold), scroll-into-view + `aria-live` on reveal,
+FigJam-style floating reaction pill (always one tap away), and a "4/5 in"
+votes-progress chip that fills as votes land (squash-and-stretch + floating
++1 per vote — the Josh Comeau heart-button trick, horizontal so the fill
+doesn't strike through the text).
 
-1. **Reveal below the fold** *(the one high-severity finding)* — results,
-   chart, and celebrations render under the players table and are invisible
-   without scrolling at the round's climactic moment. Scroll into view on
-   reveal + an `aria-live` announcement.
-2. **Two-column desktop layout** — the room is a mobile-shaped stack even at
-   1440px; story/deck/queue left, players/results right.
-3. **Accessibility pass** — voting hand as a radio group, arrow-key deck
-   navigation, ARIA on reveals/chips/disclosures.
-4. **Sticky reaction tray** — the emoji reactions have drifted below the
-   fold as the room grew features; pin the tray to the viewport (sticky or
-   floating) so the joy layer is always one tap away.
-5. Small: empty-room onboarding copy, first-rabbit explainer toast,
+Remaining from the July 2026 self-critique:
+
+1. **Accessibility pass** — voting hand as a radio group, arrow-key deck
+   navigation, ARIA on chips/disclosures (reveal announcement shipped).
+2. **Home page refresh** — app-first landing: hero card untouched above the
+   fold, how-it-works + feature highlights + open-source note below.
+3. Small: empty-room onboarding copy, first-rabbit explainer toast,
    "host changed settings" toast.
 
 Future ideas (not committed):

@@ -54,10 +54,20 @@ class RoomPage extends LitElement {
 		muted: { state: true },
 		volume: { state: true },
 		timerWobble: { state: true },
+		revealAnnouncement: { state: true },
+		votePop: { state: true },
 	};
 
 	roomId = '';
 	state: RoomStateView | null = null;
+	/** screen-reader text for the aria-live region; set at reveal */
+	revealAnnouncement = '';
+	/** previous revealed flag — detects the false→true transition */
+	private wasRevealed = false;
+	/** squash-and-stretch on the votes-in chip when a vote lands */
+	votePop = false;
+	private votePopTimer: ReturnType<typeof setTimeout> | undefined;
+	private prevVoted = -1;
 	status: ConnectionStatus = 'connecting';
 	error = '';
 	nameDraft = getSavedName();
@@ -189,7 +199,33 @@ class RoomPage extends LitElement {
 			display: block;
 			max-width: 860px;
 			margin: 0 auto;
-			padding: 20px 16px 60px;
+			/* extra bottom room so the floating reaction pill never sits on content */
+			padding: 20px 16px 96px;
+		}
+		/* Two-column desktop: what-you-do on the left, what-everyone-did on
+		   the right — results land beside the players table at reveal instead
+		   of below the fold. Single column (DOM order) everywhere narrower. */
+		.columns {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr);
+			gap: 0 20px;
+			align-items: start;
+		}
+		@media (min-width: 1024px) {
+			:host {
+				max-width: 1200px;
+			}
+			.columns {
+				grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+			}
+		}
+		.sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
 		}
 		header {
 			display: flex;
@@ -557,13 +593,87 @@ class RoomPage extends LitElement {
 			color: var(--sp-success);
 		}
 
-		/* Reactions */
+		/* "n/m in" chip — fills bottom-up with accent as votes land (the
+		   Josh Comeau heart-button trick), squashes on each increment. */
+		.votes-in {
+			position: relative;
+			display: inline-flex;
+			align-items: center;
+			overflow: hidden;
+			margin-left: 8px;
+			padding: 3px 10px;
+			border-radius: 999px;
+			border: 1px solid var(--sp-border);
+			background: var(--sp-btn-bg);
+			font-size: 0.78rem;
+			font-weight: 700;
+			letter-spacing: normal;
+			text-transform: none;
+			color: var(--sp-surface-text);
+			vertical-align: middle;
+		}
+		/* Horizontal fill: a vertical fill's edge line strikes through the
+		   text; width-wise it reads as a progress bar behind it instead. */
+		.votes-in-fill {
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			width: var(--fill, 0%);
+			background: color-mix(in srgb, var(--sp-accent) 30%, var(--sp-btn-bg));
+			transition: width 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+		}
+		.votes-in-text {
+			position: relative;
+		}
+		.votes-in.full {
+			border-color: var(--sp-accent);
+		}
+		.votes-in.pop {
+			animation: vote-squash 0.5s cubic-bezier(0.2, 1.8, 0.4, 1);
+		}
+		@keyframes vote-squash {
+			0% { transform: scale(1, 1); }
+			30% { transform: scale(1.25, 0.7); }
+			60% { transform: scale(0.85, 1.15); }
+			100% { transform: scale(1, 1); }
+		}
+		.plus-one {
+			position: absolute;
+			right: 4px;
+			top: 0;
+			font-size: 0.7rem;
+			color: var(--sp-accent);
+			animation: plus-one-rise 0.7s ease-out forwards;
+			pointer-events: none;
+		}
+		@keyframes plus-one-rise {
+			from { opacity: 1; transform: translateY(4px); }
+			to { opacity: 0; transform: translateY(-14px); }
+		}
+
+		/* Reactions — a FigJam-style pill floating over the page bottom, so
+		   the joy layer stays one tap away no matter how tall the room gets. */
 		.reactions {
+			position: fixed;
+			bottom: 16px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 40;
 			display: flex;
-			gap: 6px;
-			flex-wrap: wrap;
-			justify-content: center;
-			margin-bottom: 18px;
+			gap: 4px;
+			max-width: calc(100vw - 24px);
+			overflow-x: auto;
+			scrollbar-width: none;
+			padding: 6px 10px;
+			border-radius: 999px;
+			background: color-mix(in srgb, var(--sp-surface) 80%, transparent);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+		}
+		.reactions::-webkit-scrollbar {
+			display: none;
 		}
 		.react {
 			font-size: 1.3rem;
@@ -965,6 +1075,41 @@ class RoomPage extends LitElement {
 		`,
 	];
 
+	/** How many connected voters have voted (mirrors what the table shows). */
+	private votedProgress(s: RoomStateView | null): { done: number; total: number } {
+		const voters = (s?.participants ?? []).filter((p) => p.role === 'voter');
+		return { done: voters.filter((p) => p.hasVoted).length, total: voters.length };
+	}
+
+	protected updated(): void {
+		const s = this.state;
+		const revealed = s?.revealed ?? false;
+		// Reveal is the round's climax — make sure it's perceivable: scroll the
+		// results into view when they'd render offscreen, and tell screen
+		// readers via the aria-live region.
+		if (revealed && !this.wasRevealed) {
+			const n = s?.voteCounts.reduce((sum, v) => sum + v.count, 0) ?? 0;
+			this.revealAnnouncement = `Votes revealed — ${n} ${n === 1 ? 'vote' : 'votes'}`;
+			const el = this.renderRoot.querySelector('.results-panel');
+			if (el) {
+				const rect = el.getBoundingClientRect();
+				if (rect.top > window.innerHeight - 80 || rect.bottom < 0) {
+					el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+			}
+		}
+		if (!revealed && this.wasRevealed) this.revealAnnouncement = ''; // fresh round
+		this.wasRevealed = revealed;
+		// A new vote landing squash-and-stretches the "n/m in" chip (+1 pip).
+		const { done } = this.votedProgress(s);
+		if (!revealed && done > this.prevVoted && this.prevVoted >= 0) {
+			this.votePop = true;
+			clearTimeout(this.votePopTimer);
+			this.votePopTimer = setTimeout(() => (this.votePop = false), 700);
+		}
+		this.prevVoted = revealed ? -1 : done; // a fresh round starts quiet
+	}
+
 	render() {
 		const s = this.state;
 		return html`
@@ -1095,6 +1240,8 @@ class RoomPage extends LitElement {
 		return html`
 			${s.settings.roomName ? html`<div class="panel"><strong>${s.settings.roomName}</strong></div>` : nothing}
 
+			<div class="columns">
+			<div class="col">
 			<div class="panel">
 				<label class="field">
 					Story description
@@ -1155,8 +1302,6 @@ class RoomPage extends LitElement {
 				</div>
 			</div>
 
-			${s.settings.ticketQueue !== false ? this.renderQueue(s) : nothing}
-
 			${me?.role === 'voter'
 				? html`
 						<div class="panel">
@@ -1184,8 +1329,12 @@ class RoomPage extends LitElement {
 					`
 				: nothing}
 
+			${s.settings.ticketQueue !== false ? this.renderQueue(s) : nothing}
+			</div>
+
+			<div class="col">
 			<div class="panel">
-				<label class="field">Players</label>
+				<label class="field">Players ${this.renderVotesIn(s)}</label>
 				<table>
 					<thead>
 						<tr>
@@ -1239,11 +1388,7 @@ class RoomPage extends LitElement {
 
 			${s.revealed && voters.length ? this.renderStats(s) : nothing}
 			${s.settings.keepHistory !== false && s.history?.length ? this.renderHistory(s) : nothing}
-
-			<div class="reactions" title="React — 🐇 = we're going down a rabbit hole">
-				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.theme] ?? [])].map(
-					(e) => html`<button class="react" @click=${() => this.sendReaction(e)}>${e}</button>`,
-				)}
+			</div>
 			</div>
 
 			<div class="panel">
@@ -1290,6 +1435,28 @@ class RoomPage extends LitElement {
 						@close=${() => (this.showSettings = false)}
 					></points-settings>`
 				: nothing}
+
+			<div class="reactions" title="React — 🐇 = we're going down a rabbit hole">
+				${[...REACTION_EMOJI, ...(THEME_REACTIONS[s.theme] ?? [])].map(
+					(e) => html`<button class="react" @click=${() => this.sendReaction(e)}>${e}</button>`,
+				)}
+			</div>
+
+			<div class="sr-only" role="status" aria-live="polite">${this.revealAnnouncement}</div>
+		`;
+	}
+
+	/** "4/5 in" — fills like Josh Comeau's heart button as votes land;
+	 *  squash-and-stretch + a floating +1 on each new vote. */
+	private renderVotesIn(s: RoomStateView) {
+		const { done, total } = this.votedProgress(s);
+		if (total === 0 || s.revealed) return nothing;
+		return html`
+			<span class="votes-in ${this.votePop ? 'pop' : ''} ${done === total ? 'full' : ''}" style="--fill:${(done / total) * 100}%">
+				<span class="votes-in-fill"></span>
+				<span class="votes-in-text">${done}/${total} in</span>
+				${this.votePop ? html`<span class="plus-one">+1</span>` : nothing}
+			</span>
 		`;
 	}
 
@@ -1305,7 +1472,7 @@ class RoomPage extends LitElement {
 		for (const v of votes) counts.set(v, (counts.get(v) ?? 0) + 1);
 		const agreement = votes.length > 1 ? Math.round((Math.max(...counts.values()) / votes.length) * 100) : null;
 		return html`
-			<div class="panel">
+			<div class="panel results-panel">
 				<label class="field">Results</label>
 				<div class="stats">
 					<div class="stat">
