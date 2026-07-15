@@ -157,15 +157,18 @@ export class Room extends DurableObject<Env> {
 		);
 	}
 
-	/** Report how many people are connected right now (0 = room went quiet). */
-	private reportPresence(room: PersistedRoom): void {
+	/** Report how many people are connected right now (0 = room went quiet).
+	 *  `players` overrides the live count — needed on explicit leave, where
+	 *  the leaver's sockets are still closing (and server-initiated closes
+	 *  never fire webSocketClose, so no later report would correct it). */
+	private reportPresence(room: PersistedRoom, players = this.connectedIds().size): void {
 		if (!room.slug) return; // pre-stats room that hasn't seen a socket since
 		const stub = this.env.STATS.get(this.env.STATS.idFromName('global'));
 		this.ctx.waitUntil(
 			stub
 				.fetch('https://stats/presence', {
 					method: 'POST',
-					body: JSON.stringify({ room: room.slug, players: this.connectedIds().size }),
+					body: JSON.stringify({ room: room.slug, players }),
 				})
 				.catch(() => {}),
 		);
@@ -564,8 +567,10 @@ export class Room extends DurableObject<Env> {
 				await this.save();
 				this.broadcast(room);
 				for (const socket of this.ctx.getWebSockets(userId)) socket.close(1000, 'left');
-				// Server-initiated closes don't fire webSocketClose — report here.
-				this.reportPresence(room);
+				// Server-initiated closes don't fire webSocketClose, and the
+				// leaver's sockets are still in the list mid-close — count
+				// everyone but them explicitly.
+				this.reportPresence(room, [...this.connectedIds()].filter((id) => id !== userId).length);
 				return;
 			}
 			default:
