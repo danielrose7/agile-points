@@ -104,9 +104,11 @@ export function fmtNum(n: number): string {
 	return new Intl.NumberFormat(resolveLocale()).format(n);
 }
 
-/** "2m ago" → locale-correct relative time ("vor 2 Min.", "hace 2 min"). */
+/** "2 min. ago" → locale-correct relative time ("vor 2 Min.", "hace 2 min").
+ *  style 'short', not 'narrow': French narrow renders "-48 min", which
+ *  reads as a negative number, not a time. */
 export function timeAgo(ts: number): string {
-	const rtf = new Intl.RelativeTimeFormat(resolveLocale(), { numeric: 'auto', style: 'narrow' });
+	const rtf = new Intl.RelativeTimeFormat(resolveLocale(), { numeric: 'auto', style: 'short' });
 	const mins = Math.round((ts - Date.now()) / 60_000);
 	if (mins > -1) return rtf.format(0, 'minute');
 	if (mins > -60) return rtf.format(mins, 'minute');
