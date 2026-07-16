@@ -220,6 +220,104 @@
 	background: #0b331c;
 }
 
+/* ---- Regional celebrations (locale-scoped seasonal anchors) ---- */
+
+/* 🎭 Carnaval (pt, mid-Feb): Rio night — purple stage, gold & green sparkle */
+:root[data-theme='carnaval'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #6b21a8 0%, #4a1478 45%, #2a0a47 100%);
+	--sp-accent: #fbbf24;
+	--sp-accent-text: #3a2b00;
+	--sp-card-back: repeating-linear-gradient(45deg, #fbbf24 0 6px, #16a34a 6px 12px);
+	--sp-highlight: #fdf6e3;
+	--sp-highlight-strong: #faeac2;
+	--sp-confetti: #fbbf24, #16a34a, #d946ef, #38bdf8, #fff;
+	background: #2a0a47;
+}
+
+/* 🌸 Hanami (ja, early Apr): dusk over the sakura trees */
+:root[data-theme='hanami'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #9d5c7f 0%, #6d3a5d 45%, #3f2038 100%);
+	--sp-accent: #ff8fab;
+	--sp-accent-text: #4a1128;
+	--sp-card-back: repeating-linear-gradient(45deg, #ff8fab 0 6px, #fff0f5 6px 12px);
+	--sp-highlight: #fff0f5;
+	--sp-highlight-strong: #ffdbe7;
+	--sp-confetti: #ff8fab, #ffc2d4, #fff0f5, #b76e95;
+	background: #3f2038;
+}
+
+/* 🎠 Feria de Abril (es, mid-Apr): flamenco red, lantern light, lunares */
+:root[data-theme='feria'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #b32433 0%, #841722 45%, #4e0d14 100%);
+	--sp-accent: #f4a261;
+	--sp-accent-text: #4e0d14;
+	--sp-card-back: repeating-linear-gradient(45deg, #c1121f 0 6px, #fdf0d5 6px 12px);
+	--sp-highlight: #fdf0d5;
+	--sp-highlight-strong: #fadfae;
+	--sp-confetti: #c1121f, #fdf0d5, #f4a261, #2a9d8f;
+	background: #4e0d14;
+}
+
+/* 🌽 Festa Junina (pt, late Jun): bonfire night, bunting over the arraial */
+:root[data-theme='festajunina'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #92400e 0%, #6b2f0a 45%, #3d1a05 100%);
+	--sp-accent: #f59e0b;
+	--sp-accent-text: #3d1a05;
+	--sp-card-back: repeating-linear-gradient(45deg, #f59e0b 0 6px, #dc2626 6px 12px);
+	--sp-highlight: #fef3e2;
+	--sp-highlight-strong: #fbe3bd;
+	--sp-confetti: #f59e0b, #dc2626, #16a34a, #fde68a;
+	background: #3d1a05;
+}
+
+/* 🎋 Tanabata (ja, Jul 7): the Milky Way between Orihime and Hikoboshi */
+:root[data-theme='tanabata'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #1e3a6e 0%, #142850 45%, #0a1530 100%);
+	--sp-accent: #6ee7b7;
+	--sp-accent-text: #06281c;
+	--sp-card-back: repeating-linear-gradient(to bottom, #6ee7b7 0 6px, #1e3a6e 6px 12px);
+	--sp-highlight: #e9fbf3;
+	--sp-highlight-strong: #c9f4e2;
+	--sp-confetti: #6ee7b7, #f9a8d4, #fde047, #93c5fd, #c4b5fd;
+	background: #0a1530;
+}
+
+/* 🥖 Bastille Day (fr, Jul 14): bleu-blanc-rouge over a Paris night */
+:root[data-theme='bastille'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #1d3f8f 0%, #142c66 45%, #0a173d 100%);
+	--sp-accent: #ef4135;
+	--sp-accent-text: #ffffff;
+	--sp-card-back: repeating-linear-gradient(to right, #0055a4 0 4px, #f5f5f5 4px 8px, #ef4135 8px 12px);
+	--sp-highlight: #f2f5ff;
+	--sp-highlight-strong: #dbe4ff;
+	--sp-confetti: #0055a4, #f5f5f5, #ef4135, #ffd700;
+	background: #0a173d;
+}
+
+/* 🥨 Oktoberfest (de, late Sep): Bavarian sky, lozenge tablecloth, beer gold */
+:root[data-theme='oktoberfest'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #2e73c4 0%, #1d4f96 45%, #0e2c5c 100%);
+	--sp-accent: #eab308;
+	--sp-accent-text: #3a2b00;
+	--sp-card-back: repeating-linear-gradient(45deg, #2e73c4 0 6px, #f5f5f5 6px 12px);
+	--sp-highlight: #fdf8e1;
+	--sp-highlight-strong: #f8edbb;
+	--sp-confetti: #2e73c4, #f5f5f5, #eab308, #8b5a2b;
+	background: #0e2c5c;
+}
+
+/* 💀 Día de Muertos (es, Nov 1): marigold path through the purple night */
+:root[data-theme='muertos'] {
+	--sp-bg: radial-gradient(ellipse at 50% -20%, #4c1d95 0%, #35136b 45%, #1e0a40 100%);
+	--sp-accent: #f77f00;
+	--sp-accent-text: #2b1600;
+	--sp-card-back: repeating-linear-gradient(45deg, #f77f00 0 6px, #d946ef 6px 12px);
+	--sp-highlight: #fff2e2;
+	--sp-highlight-strong: #ffe1bd;
+	--sp-confetti: #f77f00, #d946ef, #06d6a0, #ffd166, #fff;
+	background: #1e0a40;
+}
+
 /* Twinkling starfield */
 :root[data-theme='space'] body::after {
 	content: '';

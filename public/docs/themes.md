@@ -1,9 +1,10 @@
 # Themes
 
-17 themes: five you pick because you like them, and a twelve-stop seasonal
-calendar that rolls through the year on its own. Every theme re-dresses the
-whole room — table felt, card backs, confetti — and invites two of its own
-emoji into the reaction tray.
+25 themes: five you pick because you like them, a seasonal calendar that
+rolls through the year on its own, and ten regional celebrations that only
+enter the rotation for rooms created in their locale. Every theme
+re-dresses the whole room — table felt, card backs, confetti — and invites
+two of its own emoji into the reaction tray.
 
 ## Seasonal (auto)
 
@@ -36,12 +37,31 @@ calendar (roughly the window between its neighbors):
 | 🌸 Easter | Apr 5 | Soft lavender, pastel confetti. | 🐣 🌸 |
 | 🌷 Mother's Day | May 10 | Warm terracotta and tulips. | 🌷 💐 |
 | ☀️ Summer | Jun 21 | Golden hour, all day. | 🍦 😎 |
-| 🎆 4th of July | Jul 4 | Deep flag blue; red-and-white fireworks. | 🎆 🦅 |
 | 📚 Back to School | Aug 25 | Amber chalkboard-and-pencils. | 📚 ✏️ |
 | 🍂 Fall | Sep 22 | Burnt orange, falling leaves. | 🍂 🌰 |
 | 🎃 Halloween | Oct 31 | Haunted purple-black. | 🎃 👻 |
-| 🦃 Thanksgiving | Nov 26 | Warm oven browns. | 🦃 🥧 |
 | 🎄 Christmas | Dec 25 | Evergreen and snow. | 🎅 ⛄ |
+
+## Regional celebrations
+
+Rooms remember the locale they were created in, and these anchors only
+join that room's seasonal rotation — a German team's late-September room
+dresses for Oktoberfest, a French one skips the 4th of July and celebrates
+Bastille Day, and Thanksgiving stays an English-locale affair. Any host
+can still pin any of them manually, locale regardless.
+
+| Theme | Anchor | Rotation for | The room becomes | Tray guests |
+| --- | --- | --- | --- | --- |
+| 🎭 Carnaval | Feb 17 | pt | Rio night — purple stage, gold & green sparkle. | 🎭 🥁 |
+| 🌸 Hanami | Apr 1 | ja | Dusk over the sakura trees. | 🌸 🍡 |
+| 🎠 Feria de Abril | Apr 15 | es | Flamenco red, lantern light, lunares. | 🎠 💃 |
+| 🌽 Festa Junina | Jun 24 | pt | Bonfire night, bunting over the arraial. | 🌽 🎪 |
+| 🎆 4th of July | Jul 4 | en | Deep flag blue; red-and-white fireworks. | 🎆 🦅 |
+| 🎋 Tanabata | Jul 7 | ja | The Milky Way between Orihime and Hikoboshi. | 🎋 ⭐ |
+| 🥖 Bastille Day | Jul 14 | fr | Bleu-blanc-rouge over a Paris night. | 🥖 🍾 |
+| 🥨 Oktoberfest | Sep 20 | de | Bavarian sky, lozenge tablecloth, beer gold. | 🥨 🍺 |
+| 💀 Día de Muertos | Nov 1 | es | Marigold path through the purple night. | 💀 🌼 |
+| 🦃 Thanksgiving | Nov 26 | en | Warm oven browns. | 🦃 🥧 |
 
 Hover any tray emoji for its label — the seasonal guests have opinions
 ("🌰 tough nut to crack", "👻 ghost of sprints past", "🎅 ho ho hopefully

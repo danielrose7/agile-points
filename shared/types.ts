@@ -7,6 +7,8 @@ export interface DeckCard {
 	group?: string;
 }
 
+/** `region` groups a theme under "Regional celebrations" in the picker and
+ *  scopes its seasonal anchor to rooms created in that locale. */
 export const THEMES = [
 	{ id: 'classic', label: '🃏 Card table' },
 	{ id: 'space', label: '🚀 Outer space' },
@@ -19,12 +21,20 @@ export const THEMES = [
 	{ id: 'easter', label: '🌸 Easter' },
 	{ id: 'mothersday', label: '🌷 Mother’s Day' },
 	{ id: 'summer', label: '☀️ Summer' },
-	{ id: 'july4', label: '🎆 4th of July' },
+	{ id: 'july4', label: '🎆 4th of July', region: 'en' },
 	{ id: 'backtoschool', label: '📚 Back to School' },
 	{ id: 'fall', label: '🍂 Fall' },
 	{ id: 'halloween', label: '🎃 Halloween' },
-	{ id: 'thanksgiving', label: '🦃 Thanksgiving' },
+	{ id: 'thanksgiving', label: '🦃 Thanksgiving', region: 'en' },
 	{ id: 'christmas', label: '🎄 Christmas' },
+	{ id: 'carnaval', label: '🎭 Carnaval', region: 'pt' },
+	{ id: 'hanami', label: '🌸 Hanami', region: 'ja' },
+	{ id: 'feria', label: '🎠 Feria de Abril', region: 'es' },
+	{ id: 'festajunina', label: '🌽 Festa Junina', region: 'pt' },
+	{ id: 'tanabata', label: '🎋 Tanabata', region: 'ja' },
+	{ id: 'bastille', label: '🥖 Bastille Day', region: 'fr' },
+	{ id: 'oktoberfest', label: '🥨 Oktoberfest', region: 'de' },
+	{ id: 'muertos', label: '💀 Día de Muertos', region: 'es' },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]['id'];
@@ -63,6 +73,10 @@ export interface RoomSettings {
 	freshClock: boolean;
 	/** Copyable "use your agent" prompts in the queue/history panels. */
 	agentPrompts: boolean;
+	/** Which regional seasonal anchors this room follows (set from the
+	 *  creator's locale at creation; 'en' when absent). Not shown in the
+	 *  settings UI — the host can always pin a regional theme directly. */
+	seasonalLocale?: string;
 }
 
 /** One finished round ("Next ticket →" after a reveal). Aggregate counts
@@ -156,6 +170,14 @@ export const THEME_REACTIONS: Record<ThemeId, [string, string]> = {
 	halloween: ['🎃', '👻'],
 	thanksgiving: ['🦃', '🥧'],
 	christmas: ['🎅', '⛄'],
+	carnaval: ['🎭', '🥁'],
+	hanami: ['🌸', '🍡'],
+	feria: ['🎠', '💃'],
+	festajunina: ['🌽', '🎪'],
+	tanabata: ['🎋', '⭐'],
+	bastille: ['🥖', '🍾'],
+	oktoberfest: ['🥨', '🍺'],
+	muertos: ['💀', '🌼'],
 };
 
 /** Tooltip labels for every reaction: plain Unicode names for the core
@@ -204,6 +226,20 @@ export const REACTION_LABELS: Record<string, string> = {
 	'🥧': 'easy as pie',
 	'🎅': 'ho ho hopefully a 3',
 	'⛄': 'chill estimate',
+	'🎭': 'samba past the estimate',
+	'🥁': 'drumroll please',
+	'🍡': 'sweet little ticket',
+	'🎠': 'round and round we go',
+	'🌽': 'a-maize-ing work',
+	'🎪': 'big tent energy',
+	'🎋': 'wish on a tanzaku',
+	'⭐': 'star-crossed estimate',
+	'🥖': 'baguette break',
+	'🍾': 'pop the cork',
+	'🥨': 'twisted but shippable',
+	'🍺': 'prost!',
+	'💀': 'this ticket has history',
+	'🌼': 'follow the marigolds',
 };
 
 /** Everything the server accepts, regardless of the room's current theme. */
@@ -212,30 +248,45 @@ export const ALL_REACTION_EMOJI: string[] = [
 ];
 
 /** Calendar anchors for seasonal themes ([month 1-12, day]). Non-seasonal
- *  themes have no anchor — they're manual picks in room settings. */
-const THEME_ANCHORS: Array<{ id: ThemeId; month: number; day: number }> = [
+ *  themes have no anchor — they're manual picks in room settings.
+ *  `locales`: the anchor only enters the rotation for rooms created in one
+ *  of those locales (July 4th stops visiting German rooms; Oktoberfest
+ *  starts). Anchors without `locales` are global. Mirrored in the
+ *  index.html pre-paint script — keep in sync. */
+const THEME_ANCHORS: Array<{ id: ThemeId; month: number; day: number; locales?: string[] }> = [
 	{ id: 'newyear', month: 2, day: 1 },
 	{ id: 'valentines', month: 2, day: 14 },
+	{ id: 'carnaval', month: 2, day: 17, locales: ['pt'] },
 	{ id: 'stpatricks', month: 3, day: 17 },
+	{ id: 'hanami', month: 4, day: 1, locales: ['ja'] },
 	{ id: 'easter', month: 4, day: 5 },
+	{ id: 'feria', month: 4, day: 15, locales: ['es'] },
 	{ id: 'mothersday', month: 5, day: 10 },
 	{ id: 'summer', month: 6, day: 21 },
-	{ id: 'july4', month: 7, day: 4 },
+	{ id: 'festajunina', month: 6, day: 24, locales: ['pt'] },
+	{ id: 'july4', month: 7, day: 4, locales: ['en'] },
+	{ id: 'tanabata', month: 7, day: 7, locales: ['ja'] },
+	{ id: 'bastille', month: 7, day: 14, locales: ['fr'] },
 	{ id: 'backtoschool', month: 8, day: 25 },
+	{ id: 'oktoberfest', month: 9, day: 20, locales: ['de'] },
 	{ id: 'fall', month: 9, day: 22 },
 	{ id: 'halloween', month: 10, day: 31 },
-	{ id: 'thanksgiving', month: 11, day: 26 },
+	{ id: 'muertos', month: 11, day: 1, locales: ['es'] },
+	{ id: 'thanksgiving', month: 11, day: 26, locales: ['en'] },
 	{ id: 'christmas', month: 12, day: 25 },
 ];
 
-/** Theme whose anchor date is nearest to `date`, wrapping around the year. */
-export function seasonalTheme(date: Date): ThemeId {
+/** Theme whose anchor date is nearest to `date`, wrapping around the year.
+ *  `locale` admits that locale's regional anchors and drops other locales'
+ *  (a de room gets Oktoberfest and skips July 4th). */
+export function seasonalTheme(date: Date, locale = 'en'): ThemeId {
 	const dayOfYear = (d: Date) =>
 		Math.floor((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86_400_000);
 	const today = dayOfYear(date);
 	let best: ThemeId = 'classic';
 	let bestDist = Infinity;
 	for (const a of THEME_ANCHORS) {
+		if (a.locales && !a.locales.includes(locale)) continue;
 		const anchorDay = dayOfYear(new Date(Date.UTC(date.getUTCFullYear(), a.month - 1, a.day)));
 		const raw = Math.abs(anchorDay - today);
 		const dist = Math.min(raw, 365 - raw);
@@ -248,8 +299,9 @@ export function seasonalTheme(date: Date): ThemeId {
 }
 
 export type ClientMessage =
-	/** preset only applies when this join creates the room */
-	| { type: 'join'; name: string; role: Role; preset?: string }
+	/** preset and locale only apply when this join creates the room; locale
+	 *  pins which regional seasonal anchors the room follows */
+	| { type: 'join'; name: string; role: Role; preset?: string; locale?: string }
 	| { type: 'vote'; value: string | null }
 	| { type: 'reveal' }
 	/** clearStory=true means "next ticket": also blank the story description */

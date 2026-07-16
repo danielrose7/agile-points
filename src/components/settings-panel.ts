@@ -98,6 +98,40 @@ class SettingsPanel extends LitElement {
 			gap: 8px;
 			flex-wrap: wrap;
 		}
+		.theme-group-title {
+			font-size: 0.72rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--sp-muted);
+			margin: 14px 0 6px;
+		}
+		.theme-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+			gap: 6px;
+		}
+		.theme-chip {
+			text-align: left;
+			padding: 8px 10px;
+			border: 1px solid var(--sp-border);
+			border-radius: 8px;
+			background: var(--sp-btn-bg);
+			color: var(--sp-surface-text);
+			font: inherit;
+			font-size: 0.88rem;
+			cursor: pointer;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.theme-chip:hover {
+			border-color: var(--sp-accent);
+		}
+		.theme-chip.active {
+			border-color: var(--sp-accent);
+			background: var(--sp-highlight);
+			font-weight: 700;
+		}
 		.row {
 			display: grid;
 			grid-template-columns: 1fr 1fr 34px 34px 34px;
@@ -325,6 +359,13 @@ class SettingsPanel extends LitElement {
 	}
 
 	private renderTheme(d: RoomSettings) {
+		// Grouped grid instead of one long button row — scales past 25 themes.
+		const yearRound = new Set(['classic', 'space', 'surf', 'birthday', 'nightclub']);
+		const groups: Array<[string, ReadonlyArray<(typeof THEMES)[number]>]> = [
+			[t('Year-round'), THEMES.filter((th) => yearRound.has(th.id))],
+			[t('Seasonal calendar'), THEMES.filter((th) => !yearRound.has(th.id) && !('region' in th))],
+			[t('Regional celebrations'), THEMES.filter((th) => 'region' in th)],
+		];
 		return html`
 			<label class="field">${t('Theme')}</label>
 			<div class="presets">
@@ -335,14 +376,24 @@ class SettingsPanel extends LitElement {
 				>
 					🗓 ${t('Seasonal (auto)')}
 				</button>
-				${THEMES.map(
-					(t) => html`
-						<button class="btn ${d.theme === t.id ? 'primary' : ''}" @click=${() => this.patch({ theme: t.id })}>
-							${t.label}
-						</button>
-					`,
-				)}
 			</div>
+			${groups.map(
+				([title, themes]) => html`
+					<div class="theme-group-title">${title}</div>
+					<div class="theme-grid">
+						${themes.map(
+							(th) => html`
+								<button
+									class="theme-chip ${d.theme === th.id ? 'active' : ''}"
+									@click=${() => this.patch({ theme: th.id })}
+								>
+									${th.label}
+								</button>
+							`,
+						)}
+					</div>
+				`,
+			)}
 		`;
 	}
 

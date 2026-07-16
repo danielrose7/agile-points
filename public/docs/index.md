@@ -18,7 +18,7 @@ reclaims your seat.
 
 - [Getting started](/docs/getting-started) — create, invite, vote, reveal
 - [Features](/docs/features) — queue, history, countdown, anonymous voting, away votes, presets, and the toggles for all of them
-- [Themes](/docs/themes) — 17 themes plus seasonal auto-theming
+- [Themes](/docs/themes) — 25 themes plus seasonal auto-theming
 - [API](/docs/api) — plain-HTTP import/export for scripts, CLIs, and agents
 
 ## Principles
@@ -31,7 +31,9 @@ reclaims your seat.
   sharing it the way you share the room keeps all of that out, and it's what
   makes "point your own agent at the API" a one-click idea instead of a
   setup ceremony.
-- **Zero runtime dependencies beyond Lit.** ~20 KB of gzipped JavaScript.
+- **Dependencies must earn their place.** ~20 KB of gzipped JavaScript:
+  Lit, plus a lazy-loaded ~2 KB QR encoder that only downloads if you open
+  the invite QR. That's the whole roster.
 - **No tracker integrations in the app.** A small HTTP API is the bridge;
   anything that can run `curl` can import a backlog and export results.
 - **Free to run.** Cloudflare Workers + one Durable Object per room, within

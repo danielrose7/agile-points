@@ -14,7 +14,7 @@ import {
 	saveRoomCode,
 } from '../identity';
 import { navigate } from '../router';
-import { t, tn, fmtNum, timeAgo } from '../i18n';
+import { t, tn, fmtNum, timeAgo, resolveLocale } from '../i18n';
 import { encodeQR } from '../qr';
 import { REACTION_EMOJI, REACTION_LABELS, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
@@ -172,7 +172,7 @@ class RoomPage extends LitElement {
 		const savedName = getSavedName();
 		if (savedRole && savedName) {
 			this.roleDraft = savedRole;
-			conn.send({ type: 'join', name: savedName, role: savedRole });
+			conn.send({ type: 'join', name: savedName, role: savedRole, locale: resolveLocale() });
 		}
 		conn.connect();
 
@@ -2149,7 +2149,7 @@ class RoomPage extends LitElement {
 		// creates the room; drop it from the URL so invites stay clean.
 		const preset = new URLSearchParams(location.search).get('preset') ?? undefined;
 		if (preset) history.replaceState(null, '', location.pathname);
-		this.conn?.send({ type: 'join', name, role: this.roleDraft, preset });
+		this.conn?.send({ type: 'join', name, role: this.roleDraft, preset, locale: resolveLocale() });
 	};
 
 	private switchRole = () => {

@@ -1,5 +1,6 @@
 import type { ThemeId } from '../shared/types';
 import { seasonalTheme } from '../shared/types';
+import { resolveLocale } from './i18n';
 
 /**
  * Swap the document theme, animated with the View Transitions API where
@@ -23,5 +24,5 @@ export function applyTheme(theme: string, cacheRoomId?: string): void {
 }
 
 export function todaysTheme(): ThemeId {
-	return seasonalTheme(new Date());
+	return seasonalTheme(new Date(), resolveLocale());
 }

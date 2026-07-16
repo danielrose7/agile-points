@@ -27,7 +27,7 @@ export default {
 	'Import backlogs and export results over a plain-HTTP API; llms.txt and a one-step setup prompt for AI agents.':
 		'Importe backlogs e exporte resultados por uma API HTTP simples; llms.txt e um prompt de configuração em um passo para agentes de IA.',
 	'API docs': 'Docs da API',
-	'17 themes': '17 temas',
+	'25 themes': '25 temas',
 	'Card table to spaceship, plus a full seasonal calendar — new rooms dress for the date.':
 		'Da mesa de cartas à nave espacial, mais um calendário sazonal completo — salas novas se vestem para a data.',
 	'Browse themes': 'Ver temas',
@@ -128,6 +128,7 @@ export default {
 	'live': 'ao vivo',
 	'reconnecting…': 'reconectando…',
 	'connecting…': 'conectando…',
+	'Chime volume (just for you)': 'Volume dos sininhos (só para você)',
 	'Unmute timer sounds (just for you)': 'Ativar sons do cronômetro (só para você)',
 	'Mute timer sounds (just for you)': 'Silenciar sons do cronômetro (só para você)',
 	'Up next': 'A seguir',
@@ -183,6 +184,9 @@ export default {
 	'Move down': 'Descer',
 	'Remove': 'Remover',
 	'Add value': 'Adicionar valor',
+	'Year-round': 'O ano todo',
+	'Seasonal calendar': 'Calendário sazonal',
+	'Regional celebrations': 'Celebrações regionais',
 	'Seasonal (auto)': 'Sazonal (auto)',
 	'Follows the calendar — the room re-themes itself as holidays approach':
 		'Segue o calendário — a sala muda de tema quando as festas se aproximam',

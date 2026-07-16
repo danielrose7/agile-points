@@ -50,16 +50,28 @@
 					var m = location.pathname.match(/^\/room\/([a-z0-9-]{1,64})$/);
 					var t = m && localStorage.getItem('sp:theme:' + m[1]);
 					if (!t) {
+						// third slot = locale-scoped anchor (regional celebration)
 						var anchors = [
-							['newyear', 32], ['valentines', 45], ['stpatricks', 76],
-							['easter', 95], ['mothersday', 130], ['summer', 172],
-							['july4', 185], ['backtoschool', 237], ['fall', 265],
-							['halloween', 304], ['thanksgiving', 330], ['christmas', 359],
+							['newyear', 32], ['valentines', 45], ['carnaval', 48, 'pt'],
+							['stpatricks', 76], ['hanami', 91, 'ja'], ['easter', 95],
+							['feria', 105, 'es'], ['mothersday', 130], ['summer', 172],
+							['festajunina', 175, 'pt'], ['july4', 185, 'en'],
+							['tanabata', 188, 'ja'], ['bastille', 195, 'fr'],
+							['backtoschool', 237], ['oktoberfest', 263, 'de'],
+							['fall', 265], ['halloween', 304], ['muertos', 305, 'es'],
+							['thanksgiving', 330, 'en'], ['christmas', 359],
 						];
+						var supported = ['en', 'es', 'de', 'fr', 'pt', 'ja'];
+						var loc = localStorage.getItem('sp:locale');
+						if (!loc || supported.indexOf(loc) < 0) {
+							loc = (navigator.language || 'en').toLowerCase().split('-')[0];
+							if (supported.indexOf(loc) < 0) loc = 'en';
+						}
 						var now = new Date();
 						var doy = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
 						var bd = 999;
 						for (var i = 0; i < anchors.length; i++) {
+							if (anchors[i][2] && anchors[i][2] !== loc) continue;
 							var raw = Math.abs(anchors[i][1] - doy);
 							var d = Math.min(raw, 365 - raw);
 							if (d < bd) { bd = d; t = anchors[i][0]; }

@@ -27,7 +27,7 @@ export default {
 	'Import backlogs and export results over a plain-HTTP API; llms.txt and a one-step setup prompt for AI agents.':
 		'シンプルな HTTP API でバックログの取り込みと結果のエクスポート。llms.txt と AI エージェント向けワンステップ設定プロンプト付き。',
 	'API docs': 'API ドキュメント',
-	'17 themes': '17 種類のテーマ',
+	'25 themes': '25 種類のテーマ',
 	'Card table to spaceship, plus a full seasonal calendar — new rooms dress for the date.':
 		'カードテーブルから宇宙船まで、季節のカレンダーも完備 — 新しいルームは日付に合わせて衣替え。',
 	'Browse themes': 'テーマを見る',
@@ -128,6 +128,7 @@ export default {
 	'live': '接続中',
 	'reconnecting…': '再接続中…',
 	'connecting…': '接続中…',
+	'Chime volume (just for you)': 'チャイム音量（自分のみ）',
 	'Unmute timer sounds (just for you)': 'タイマー音をオン（自分のみ）',
 	'Mute timer sounds (just for you)': 'タイマー音をミュート（自分のみ）',
 	'Up next': '次の予定',
@@ -183,6 +184,9 @@ export default {
 	'Move down': '下へ',
 	'Remove': '削除',
 	'Add value': '値を追加',
+	'Year-round': '通年',
+	'Seasonal calendar': '季節のカレンダー',
+	'Regional celebrations': '地域のお祝い',
 	'Seasonal (auto)': '季節（自動）',
 	'Follows the calendar — the room re-themes itself as holidays approach':
 		'カレンダーに連動 — 祝祭日が近づくとルームが衣替えします',

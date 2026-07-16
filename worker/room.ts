@@ -11,9 +11,12 @@ import type {
 import { ALL_REACTION_EMOJI, defaultSettings, ROOM_PRESETS, seasonalTheme, THEMES } from '../shared/types';
 import type { ThemeChoice, ThemeId } from '../shared/types';
 
-/** 'seasonal' rooms follow the calendar; resolved fresh on every view. */
-function resolveTheme(choice: ThemeChoice): ThemeId {
-	return choice === 'seasonal' ? seasonalTheme(new Date()) : choice;
+/** 'seasonal' rooms follow the calendar; resolved fresh on every view.
+ *  The room's stored locale picks which regional anchors apply. */
+function resolveTheme(settings: RoomSettings): ThemeId {
+	return settings.theme === 'seasonal'
+		? seasonalTheme(new Date(), settings.seasonalLocale ?? 'en')
+		: settings.theme;
 }
 
 interface Participant {
@@ -288,13 +291,13 @@ export class Room extends DurableObject<Env> {
 			if (!stored) return Response.json({ exists: false });
 			// Locked rooms don't leak their name to unauthenticated peeks.
 			if (stored.accessCode) {
-				return Response.json({ exists: true, locked: true, theme: resolveTheme(stored.settings.theme) });
+				return Response.json({ exists: true, locked: true, theme: resolveTheme(stored.settings) });
 			}
 			// Name + theme feed the social-preview meta tags in worker/index.ts.
 			return Response.json({
 				exists: true,
 				name: stored.settings.roomName,
-				theme: resolveTheme(stored.settings.theme),
+				theme: resolveTheme(stored.settings),
 			});
 		}
 		if (request.headers.get('Upgrade') !== 'websocket') {
@@ -460,12 +463,19 @@ export class Room extends DurableObject<Env> {
 				const name = String(msg.name ?? '').trim().slice(0, 40);
 				const role: Role = msg.role === 'observer' ? 'observer' : 'voter';
 				if (!name) return this.sendError(ws, 'Name is required');
-				// The join that creates the room may carry a creation preset.
-				if (this.freshRoom) {
+				// The join that creates the room may carry a creation preset and
+				// the creator's locale (pins regional seasonal anchors).
+				// "Creates" = nobody has ever joined — NOT the in-memory
+				// freshRoom flag: the socket-accept path saves the room (slug
+				// stamp) before the first join, so a DO restart in between
+				// (hibernation, deploy, dev reload) would otherwise drop both.
+				if (!room.ownerId && Object.keys(room.participants).length === 0) {
 					const preset = ROOM_PRESETS.find((p) => p.id === msg.preset);
 					if (preset) room.settings = { ...room.settings, ...structuredClone(preset.settings) };
-					this.freshRoom = false;
+					const locale = String(msg.locale ?? '').slice(0, 8);
+					if (/^[a-z]{2}(-[a-z]{2})?$/i.test(locale)) room.settings.seasonalLocale = locale.toLowerCase();
 				}
+				this.freshRoom = false;
 				const existing = room.participants[userId];
 				room.participants[userId] = {
 					name,
@@ -563,6 +573,8 @@ export class Room extends DurableObject<Env> {
 					awayVotes: s?.awayVotes !== false,
 					freshClock: s?.freshClock !== false,
 					agentPrompts: s?.agentPrompts !== false,
+					// not host-editable; survives settings saves
+					seasonalLocale: room.settings.seasonalLocale,
 				};
 				// Drop votes for values no longer in the deck.
 				for (const [id, v] of Object.entries(room.votes)) {
@@ -758,7 +770,7 @@ export class Room extends DurableObject<Env> {
 			requiresCode: room.accessCode ? true : undefined,
 			history: room.settings.keepHistory === false ? [] : (room.history ?? []),
 			queue: room.settings.ticketQueue === false ? [] : (room.queue ?? []),
-			theme: resolveTheme(room.settings.theme),
+			theme: resolveTheme(room.settings),
 			countdownEndsAt: room.countdownEndsAt ?? null,
 			voteCounts: room.revealed ? this.voteCounts(room) : [],
 		};
