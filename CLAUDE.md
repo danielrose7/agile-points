@@ -54,6 +54,10 @@ layer in `src/i18n.ts` (deliberate — no i18n library):
   one PR.
 - Locale is a *personal* setting (localStorage + `Accept-Language`), never
   in URLs — room URLs are capabilities shared across mixed-language teams.
+- Layout-test with the pseudo-locale: `localStorage['sp:locale'] = 'xx'`
+  pads every `t()` string ~40% with accents (`[···Çréåté å røøm···]`).
+  Broken layouts = German will break too; plain-English strings = a
+  missing `t()` wrap.
 - Deliberately English: docs pages, llms.txt, server-sent error strings,
   agent prompts, and the theme-emoji pun tooltips (`REACTION_LABELS` theme
   entries; the core eight are translated).
