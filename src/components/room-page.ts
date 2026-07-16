@@ -15,6 +15,7 @@ import {
 } from '../identity';
 import { navigate } from '../router';
 import { t, tn, fmtNum, timeAgo } from '../i18n';
+import { encodeQR } from '../qr';
 import { REACTION_EMOJI, REACTION_LABELS, THEME_REACTIONS } from '../../shared/types';
 import { chime, getVolume, isMuted, setMuted, setVolume } from '../sound';
 import { applyTheme } from '../theme';
@@ -57,6 +58,8 @@ class RoomPage extends LitElement {
 		timerWobble: { state: true },
 		revealAnnouncement: { state: true },
 		votePop: { state: true },
+		showQr: { state: true },
+		qrMatrix: { state: true },
 	};
 
 	roomId = '';
@@ -67,6 +70,9 @@ class RoomPage extends LitElement {
 	private wasRevealed = false;
 	/** squash-and-stretch on the votes-in chip when a vote lands */
 	votePop = false;
+	/** invite QR toggle + lazily-encoded module matrix */
+	showQr = false;
+	qrMatrix: boolean[][] | null = null;
 	private votePopTimer: ReturnType<typeof setTimeout> | undefined;
 	private prevVoted = -1;
 	status: ConnectionStatus = 'connecting';
@@ -677,6 +683,23 @@ class RoomPage extends LitElement {
 		@keyframes plus-one-rise {
 			from { opacity: 1; transform: translateY(4px); }
 			to { opacity: 0; transform: translateY(-14px); }
+		}
+
+		/* Invite QR — white tile regardless of theme: QR readers want quiet
+		   contrast, so this is scanner UX, not palette (rule exception noted). */
+		.qr-wrap {
+			margin-top: 14px;
+			text-align: center;
+		}
+		.qr {
+			width: 200px;
+			max-width: 100%;
+			border-radius: 10px;
+		}
+		.qr-hint {
+			font-size: 0.8rem;
+			color: var(--sp-muted);
+			margin-top: 4px;
 		}
 
 		/* Reactions — a FigJam-style pill floating over the page bottom, so
@@ -1469,7 +1492,15 @@ class RoomPage extends LitElement {
 					<button class="btn ${this.copied ? 'copied' : ''}" @click=${this.copyLink}>
 						${this.copied ? t('Copied ✓') : t('Copy link')}
 					</button>
+					<button
+						class="btn ${this.showQr ? 'copied' : ''}"
+						title=${t('For screenshares and conference-room TVs — scanning joins in one step')}
+						@click=${this.toggleQr}
+					>
+						${t('QR code')}
+					</button>
 				</div>
+				${this.showQr ? this.renderQr() : nothing}
 			</div>
 
 			<div class="toolbar">
@@ -1515,6 +1546,49 @@ class RoomPage extends LitElement {
 			</div>
 
 			<div class="sr-only" role="status" aria-live="polite">${this.revealAnnouncement}</div>
+		`;
+	}
+
+	/** Lazy-encode on open: lean-qr's chunk loads on first use only. The
+	 *  URL carries the room code when protection is on, so scanning admits
+	 *  you in one step. */
+	private toggleQr = async () => {
+		this.showQr = !this.showQr;
+		if (this.showQr) {
+			const url = this.inviteUrl(this.state);
+			try {
+				this.qrMatrix = await encodeQR(url);
+			} catch {
+				this.showQr = false; // encoder unavailable — quietly drop the panel
+			}
+		}
+	};
+
+	private renderQr() {
+		const matrix = this.qrMatrix;
+		if (!matrix) return nothing; // still loading (first open, ~2 KB fetch)
+		const n = matrix.length;
+		let d = '';
+		for (let r = 0; r < n; r++) {
+			for (let c = 0; c < n; c++) {
+				if (matrix[r][c]) d += `M${c},${r}h1v1h-1z`;
+			}
+		}
+		// 4-module quiet zone per spec
+		return html`
+			<div class="qr-wrap">
+				<svg
+					class="qr"
+					viewBox="-4 -4 ${n + 8} ${n + 8}"
+					role="img"
+					aria-label=${t('QR code for the invite link')}
+					shape-rendering="crispEdges"
+				>
+					<rect x="-4" y="-4" width=${n + 8} height=${n + 8} fill="white" />
+					<path d=${d} fill="black" />
+				</svg>
+				<div class="qr-hint">${t('Scan to join')}</div>
+			</div>
 		`;
 	}
 

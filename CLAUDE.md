@@ -64,8 +64,11 @@ layer in `src/i18n.ts` (deliberate — no i18n library):
 - Shadow DOM does not receive document-level CSS: every Lit component
   composes `baseStyles` (box-sizing reset) from
   `src/components/base-styles.ts` into its `static styles` array.
-- Zero runtime dependencies beyond Lit; animations are pure CSS in
-  components, sounds are Web Audio (no assets).
+- Runtime dependencies must earn their place: the default answer is no
+  (animations are pure CSS, sounds are Web Audio, no assets), but a tiny,
+  well-tested library beats a vendored rewrite of a fully-solved hard
+  problem — if it's lazy-loaded so non-users pay nothing. Current roster:
+  Lit, plus `lean-qr` (~2 KB, dynamic-imported on first QR open).
 - Ephemeral social features (reactions, celebrations) ride the WebSocket
   broadcast and are never persisted to Durable Object storage.
 - After changing `wrangler.jsonc`, rerun `npx wrangler types`.

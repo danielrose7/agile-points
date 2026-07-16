@@ -113,6 +113,11 @@ export default {
 	'code': 'コード',
 	'Copy link': 'リンクをコピー',
 	'Copied ✓': 'コピーしました ✓',
+	'QR code': 'QRコード',
+	'Scan to join': 'スキャンして参加',
+	'QR code for the invite link': '招待リンクのQRコード',
+	'For screenshares and conference-room TVs — scanning joins in one step':
+		'画面共有や会議室のTV向け — スキャンで即参加できます',
 	'Room settings': 'ルーム設定',
 	'Switch to observer': '見学に切り替え',
 	'Switch to voter': '投票に切り替え',

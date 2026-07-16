@@ -113,6 +113,11 @@ export default {
 	'code': 'código',
 	'Copy link': 'Copiar link',
 	'Copied ✓': 'Copiado ✓',
+	'QR code': 'Código QR',
+	'Scan to join': 'Escaneie para entrar',
+	'QR code for the invite link': 'Código QR do link de convite',
+	'For screenshares and conference-room TVs — scanning joins in one step':
+		'Para telas compartilhadas e TVs de sala — escanear entra em um passo',
 	'Room settings': 'Configurações da sala',
 	'Switch to observer': 'Virar observador',
 	'Switch to voter': 'Virar votante',

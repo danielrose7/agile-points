@@ -24,8 +24,10 @@ repo follow):
 
 1. **No accounts, ever** — and that includes OAuth and API keys. The room
    URL is the credential.
-2. **Zero runtime dependencies beyond Lit.** Build-time tools are fine;
-   shipping bytes are sacred.
+2. **Dependencies must earn their place.** Default answer is no; a tiny,
+   tested library for a fully-solved hard problem can pass if it's
+   lazy-loaded so non-users pay nothing (`lean-qr` is the precedent).
+   Build-time tools are fine; shipping bytes are sacred.
 3. **Colors are theme tokens** (`--sp-*`), never raw hex in components.
 4. **Identifiers are capabilities** — userIds and room slugs never leave
    the server unmasked.
