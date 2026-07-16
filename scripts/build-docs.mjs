@@ -126,6 +126,7 @@ const template = (page, html) => `<!doctype html>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>" />
 <style>
 :root {
+	color-scheme: light;
 	--sp-surface: #ffffff;
 	--sp-surface-text: #1c2b24;
 	--sp-muted: #5f7268;
@@ -144,6 +145,7 @@ const template = (page, html) => `<!doctype html>
    rule below reads tokens, so overriding them here re-skins the page. */
 @media (prefers-color-scheme: dark) {
 	:root {
+		color-scheme: dark;
 		--sp-surface: #011627;
 		--sp-surface-text: #d6deeb;
 		--sp-muted: #7e97ac;

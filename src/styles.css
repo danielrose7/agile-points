@@ -1,4 +1,9 @@
 :root {
+	/* Panels and form controls are light in every theme (the dark part is
+	   the page background) — pin the UA color-scheme so OS dark mode stops
+	   restyling buttons/inputs with dark-mode defaults (iOS Safari painted
+	   white button text on our grey buttons). */
+	color-scheme: light;
 	/* Theme hooks — post-MVP themes (surf, space, birthday, nightclub) override these. */
 	--sp-bg: radial-gradient(ellipse at 50% -20%, #2e7d5b 0%, #1b5e43 45%, #123f2e 100%);
 	--sp-surface: #ffffff;

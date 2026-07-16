@@ -16,4 +16,15 @@ export const baseStyles = css`
 	*::after {
 		box-sizing: border-box;
 	}
+	/* Form controls don't inherit text color — the UA supplies one, and iOS
+	   Safari in system dark mode picks WHITE buttontext even on our light
+	   panels (invisible labels that read as disabled). Inherit from the
+	   surrounding surface instead; buttons that want their own color
+	   (.primary etc.) still set it explicitly. */
+	button,
+	input,
+	select,
+	textarea {
+		color: inherit;
+	}
 `;
