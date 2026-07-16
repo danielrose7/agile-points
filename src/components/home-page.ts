@@ -129,6 +129,8 @@ class HomePage extends LitElement {
 			margin: 0 0 12px;
 			text-align: center;
 		}
+		/* Styled <ol>: number chip inline with its text — on mobile each step
+		   is one compact row instead of a centered number-over-text stack. */
 		.steps {
 			display: flex;
 			flex-wrap: wrap;
@@ -137,27 +139,31 @@ class HomePage extends LitElement {
 			margin: 0;
 			padding: 0;
 			list-style: none;
-			text-align: center;
 		}
 		.steps li {
-			max-width: 200px;
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			max-width: 230px;
+			text-align: left;
 		}
 		.step-num {
+			flex-shrink: 0;
 			display: inline-grid;
 			place-items: center;
-			width: 26px;
-			height: 26px;
+			width: 24px;
+			height: 24px;
 			border-radius: 50%;
 			background: var(--sp-accent);
 			color: var(--sp-accent-text);
 			font-weight: 800;
-			font-size: 0.85rem;
-			margin-bottom: 6px;
+			font-size: 0.8rem;
 		}
 		.steps .how {
 			opacity: 0.8;
 			font-size: 0.88rem;
 			line-height: 1.4;
+			padding-top: 2px;
 		}
 		.feats {
 			display: grid;
