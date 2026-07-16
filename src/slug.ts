@@ -126,3 +126,14 @@ export function generateRoomSlug(): string {
 	const words = WORDS[resolveLocale()] ?? WORDS.en;
 	return `${pick(words.adjectives)}-${pick(words.colors)}-${pick(words.animals)}`;
 }
+
+// Lowercase twin of the room-code alphabet: no 0/o/1/l lookalikes, valid in
+// a slug ([a-z0-9-]). Four chars ≈ 923k suffixes — with the word combos,
+// ~10 billion names.
+const SUFFIX_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+/** Collision escape hatch for createRoom: a short random tail like "x7km". */
+export function randomSuffix(length = 4): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(length));
+	return [...bytes].map((b) => SUFFIX_ALPHABET[b % SUFFIX_ALPHABET.length]).join('');
+}

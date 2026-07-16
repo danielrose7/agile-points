@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from './base-styles';
 import './site-footer';
-import { generateRoomSlug } from '../slug';
+import { generateRoomSlug, randomSuffix } from '../slug';
 import { navigate } from '../router';
 import { t, tn, fmtNum, timeAgo } from '../i18n';
 import { applyTheme, todaysTheme } from '../theme';
@@ -546,7 +546,7 @@ class HomePage extends LitElement {
 		// A slug is a capability: colliding with a live room would drop the
 		// creator into a stranger's session. Peek before claiming (word lists
 		// give ~10k combos per locale); after 4 taken-slugs in a row, stop
-		// gambling and bolt on a 4-digit suffix (~96M effective names).
+		// gambling and bolt on a random alphanumeric tail (~10B names).
 		for (let i = 0; i < 4; i++) {
 			const slug = generateRoomSlug();
 			try {
@@ -557,8 +557,7 @@ class HomePage extends LitElement {
 				return navigate(`/room/${slug}${q}`);
 			}
 		}
-		const n = 1000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 9000);
-		navigate(`/room/${generateRoomSlug()}-${n}${q}`);
+		navigate(`/room/${generateRoomSlug()}-${randomSuffix()}${q}`);
 	};
 
 	private joinRoom = (e: SubmitEvent) => {
